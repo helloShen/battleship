@@ -1,7 +1,7 @@
 {
-  "name": "ciaoshen.com",
+  "name": "battleship",
   "version": "1.0.0",
-  "description": "",
+  "description": "Javascript Battleship game.",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,11 @@
     "build": "webpack",
     "watch": "webpack --watch"
   },
-  "keywords": [],
+  "keywords": [
+    "javascript",
+    "game",
+    "battleship"
+  ],
   "author": "hireme.shen@gmail.com",
   "license": "MIT",
   "jest": {
