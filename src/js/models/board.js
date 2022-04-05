@@ -1,4 +1,4 @@
-import Ship from './ship';
+// import Ship from './ship';
 
 const DEFAULT_BOARD_SIZE = 10;
 
@@ -15,6 +15,30 @@ export default (size) => {
     hits: [],
     misses: [],
   };
+
+  /**
+   * Check if the new ship sits in the fixed ship's forbiden zone.
+   * @param {Ship} fixedShip The ship already put on the board.
+   * @param {Array} newHead Head position[row, column] of the new ship.
+   * @param {Array} newTail Tail position[row, column] of the new ship.
+   * @return {Boolean} true if these two ships have overlap each other, otherwise false.
+   */
+  function isOverlap(fixedShip, newHead, newTail) {
+    const [headRow, headColumn] = fixedShip.head();
+    const [tailRow, tailColumn] = fixedShip.tail();
+    const overlapRowStart = Math.max(0, headRow - 1);
+    const overlapColumnStart = Math.max(0, headColumn - 1);
+    const overlapRowEnd = Math.min(board.size - 1, tailRow + 1);
+    const overlapColumnEnd = Math.min(board.size - 1, tailColumn + 1);
+    if (newHead[0] - newTail[0] === 0) {
+      if (newHead[0] < overlapRowStart || newHead[0] > overlapRowEnd) return false;
+      if (newTail[1] < overlapColumnStart || newHead[1] > overlapColumnEnd) return false;
+      return true;
+    }
+    if (newHead[1] < overlapColumnStart || newHead[1] > overlapColumnEnd) return false;
+    if (newTail[0] < overlapColumnStart || newHead[0] > overlapRowEnd) return false;
+    return true;
+  }
 
   /**
    * Put ship at that position if it's legal.
@@ -41,19 +65,22 @@ export default (size) => {
       return false;
     }
     // check overlap
-    if (board.fleet.any((ship) => {
-
-    })) {
-      return false;
-    }
+    const newHead = [row, column];
+    const newTail = (ship.isHorizontal())
+      ? [row, column + ship.size()] : [row + ship.size(), column];
+    if (board.fleet.any((fixedShip) => isOverlap(fixedShip, newHead, newTail))) return false;
+    // legal position to put a new ship
+    ship.put(row, column);
+    board.fleet.push(ship);
+    return true;
   }
 
-  function receiveAttack(row, column) {
+  // function receiveAttack(row, column) {
 
-  }
+  // }
 
   return {
     putShip,
-    receiveAttack,
+    // receiveAttack,
   };
 };

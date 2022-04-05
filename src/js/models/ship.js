@@ -55,10 +55,24 @@ export default (inName, inSize) => {
   }
 
   /**
-   * @returns Position of the ship.
+   * @returns Position of the ship head.
    */
-  function position() {
+  function head() {
     return [ship.row, ship.column];
+  }
+
+  /**
+   * @return Position of the ship tail.
+   */
+  function tail() {
+    switch (ship.direction) {
+      case HORIZONTAL:
+        return [ship.row, ship.column + ship.size - 1];
+      case VERTICAL:
+        return [ship.row + ship.size - 1, ship.column];
+      default:
+        return undefined;
+    }
   }
 
   /**
@@ -138,7 +152,8 @@ export default (inName, inSize) => {
     id,
     size,
     name,
-    position,
+    head,
+    tail,
     isHorizontal,
     countHits,
     toggleDirection,

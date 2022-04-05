@@ -3,17 +3,20 @@ import Ship from '../ship';
 
 describe('Construct a new Cruiser in size of 3.', () => {
   const cruiser = Ship('cruiser', 3);
-  test('getId() should return 1', () => {
+  test('id() should return 1', () => {
     expect(cruiser.id()).toBe(1);
   });
-  test('getName() should return "cruiser"', () => {
+  test('name() should return "cruiser"', () => {
     expect(cruiser.name()).toBe('cruiser');
   });
-  test('getSize() should return 3.', () => {
+  test('size() should return 3.', () => {
     expect(cruiser.size()).toBe(3);
   });
-  test('getPosition()', () => {
-    expect(cruiser.position()).toEqual([0, 0]);
+  test('head()', () => {
+    expect(cruiser.head()).toEqual([0, 0]);
+  });
+  test('tail()', () => {
+    expect(cruiser.tail()).toEqual([0, 2]);
   });
   test('isHorizontal() should return true.', () => {
     expect(cruiser.isHorizontal()).toBe(true);
@@ -25,7 +28,7 @@ describe('Construct a new Cruiser in size of 3.', () => {
     const row = 1;
     const column = 3;
     cruiser.put(row, column);
-    const [shipRow, shipColumn] = cruiser.position();
+    const [shipRow, shipColumn] = cruiser.head();
     expect(shipRow).toBe(row);
     expect(shipColumn).toBe(column);
   });
