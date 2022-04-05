@@ -1,11 +1,13 @@
-// Comment out this line after unit test.
-// const UNIT_TEST = true;
+let UNIT_TEST;
+// eslint-disable-next-line prefer-const
+UNIT_TEST = true; // Comment out this line after unit test.
 
 const DEFAULT_BOARD_SIZE = 10;
 
 /**
  * Board factory function.
  * Board magages Ships, and check the hit for user.
+ * @param {Number} inSize Size of the game board.
  */
 export default (inSize) => {
   /**
@@ -13,7 +15,7 @@ export default (inSize) => {
    */
   const board = {
     // eslint-disable-next-line no-bitwise
-    size: inSize | DEFAULT_BOARD_SIZE,
+    size: inSize || DEFAULT_BOARD_SIZE,
     fleet: [],
     hits: [],
     misses: [],
@@ -202,7 +204,6 @@ export default (inSize) => {
   /**
    * API only for unit test.
    */
-  // eslint-disable-next-line no-undef
   if (UNIT_TEST) {
     api.board = board;
   }

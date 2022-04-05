@@ -1,56 +1,70 @@
+/* eslint-disable quote-props */
 /**
  * There are two different types of player:
  *  1. ai
  *  2. human
  */
-const AI = Symbol('ai');
-const HUMAN = Symbol('human');
+export const AI = Symbol('ai');
+export const HUMAN = Symbol('human');
 
 /**
  * Three different level of AI.
  */
-const EASY = Symbol('child');
-const NORMAL = Symbol('normal');
-const DIFFICULT = Symbol('difficult');
+export const EASY = Symbol('child');
+export const NORMAL = Symbol('normal');
+export const DIFFICULT = Symbol('difficult');
 
 /**
  * Player factory function.
  * Player attack 1 time for each turn.
  */
-export default (type, level) => {
+export default (inType, inLevel) => {
   /**
    * Player plain object.
    */
   const player = {
-    type,
+    type: inType,
   };
 
-  if (type === AI) {
-    // eslint-disable-next-line no-bitwise
-    player.level = level | EASY; // default is EASY
+  if (player.type === AI) {
+    player.level = inLevel || EASY; // default is EASY
+  }
+
+  function isAI() {
+    return player.type === AI;
+  }
+
+  function aiLevel() {
+    if (player.type !== AI) return undefined;
+    return player.level;
   }
 
   function randomAttack(board) {
-    const r = Math.floor(Math.random() * board.intact().length);
-    const str = board.intact()[r];
+    if (board.intact().length === 0) return false;
+    const index = Math.floor(Math.random() * board.intact().length);
+    const str = board.intact()[index];
     const [rowStr, columnStr] = str.split('-');
     board.receiveAttack(parseInt(rowStr, 10), parseInt(columnStr, 10));
+    return true;
   }
 
   function normalAttack(board) {
-    randomAttack(board);
+    return randomAttack(board);
   }
 
   function smartAttck(board) {
-    randomAttack(board);
+    return randomAttack(board);
   }
 
   /**
-   * AI player will attack immediately, and return true.
-   * Human player will do nothing but return false.
-   * @return true if attack is executed, otherwise false.
+   * ==> AI player will attack immediately,
+   * then callback game module to go to next round.
+   * ==> Human player will do nothing.
+   * It will not callback game module to go to the next round.
+   * @param {Board} board The Board object.
+   * @param {Function} callback Notice Game module to run next round.
    */
-  function attack(board) {
+  function attack(board, callback) {
     if (player.type === AI) {
       switch (player.level) {
         case EASY:
@@ -66,17 +80,13 @@ export default (type, level) => {
           randomAttack(board);
           break;
       }
-      return true;
+      callback();
     }
-    return false;
   }
 
   return {
-    AI,
-    HUMAN,
-    EASY,
-    NORMAL,
-    DIFFICULT,
+    isAI,
+    aiLevel,
     attack,
   };
 };

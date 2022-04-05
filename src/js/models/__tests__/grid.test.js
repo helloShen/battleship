@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
 import Grid from '../grid';
 
-describe('Constructor input (2, 1), ', () => {
-  const grid = Grid(2, 1);
+const grid = Grid(2, 1);
 
+describe('Constructor input (2, 1), ', () => {
   test('id() return "3B"', () => {
     expect(grid.id()).toEqual('3B');
   });
