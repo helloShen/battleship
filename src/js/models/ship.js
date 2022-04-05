@@ -1,7 +1,17 @@
 /**
- * Make sure to comment the follow line out when finish the unit test.
+ * Ship id generator.
  */
-const UNIT_TEST = true;
+function* infinite() {
+  let index = 1;
+  while (true) {
+    yield index;
+    index += 1;
+  }
+}
+
+const GEN = infinite();
+const HORIZONTAL = Symbol('horizontal');
+const VERTICAL = Symbol('vertical');
 
 /**
  * Factory function to instantiate a Ship object.
@@ -9,28 +19,61 @@ const UNIT_TEST = true;
  * @param {Number} size How many grids on the board the ship occupies.
  * @return A ship module object.
  */
-export default (name, size) => {
-  const HORIZONTAL = Symbol('horizontal');
-  const VERTICAL = Symbol('vertical');
-
+export default (inName, inSize) => {
   /**
    * plain object representing a ship on board.
    */
   const ship = {
-    name,
-    size,
-    head: {}, // Initialized as an empty grid
+    id: GEN.next().value,
+    name: inName,
+    size: inSize,
+    row: 0, // default
+    column: 0, // default
     direction: HORIZONTAL, // default
     hit: 0, // How many times the ship is hit.
   };
 
   /**
-   * Our ships are not aware of the size of the game board.
-   * Board module will check the validation for us.
-   * @param {Grid} grid Location of the head of the ship.
+   * @returns Ship's id.
    */
-  function put(grid) {
-    ship.head = grid;
+  function id() {
+    return ship.id;
+  }
+
+  /**
+   * @returns Ship's name.
+   */
+  function name() {
+    return ship.name;
+  }
+
+  /**
+   * @returns Size of the ship.
+   */
+  function size() {
+    return ship.size;
+  }
+
+  /**
+   * @returns Position of the ship.
+   */
+  function position() {
+    return [ship.row, ship.column];
+  }
+
+  /**
+   * Check the direction of the ship.
+   * @returns true if the direction is horizontal, otherwise false.
+   */
+  function isHorizontal() {
+    return ship.direction === HORIZONTAL;
+  }
+
+  /**
+   * @returns Return how many attacks the ship has taken.
+   */
+  function countHits() {
+    return ship.hit;
   }
 
   /**
@@ -48,24 +91,32 @@ export default (name, size) => {
   }
 
   /**
+   * Our ships are not aware of the size of the game board.
+   * Board module will check the validation for us.
+   * @param {Number} row Axi Y of the head of the ship.
+   * @param {Number} column Axi X of the head of the ship.
+   */
+  function put(row, column) {
+    ship.row = row;
+    ship.column = column;
+  }
+
+  /**
    * Assertion: Each grid of the board can only be attecked once.
    * The ship don't have to worry about wheather a single part is hit twice.
-   * @param {Grid} grid The grid object attacked by opponent.
+   * @param {Number} row Axi X of opponent's attack.
+   * @param {Number} column Axi Y of opponent's attack.
    * @return {Boolean} true if the ship is hit, otherwise false.
    */
-  function hit(grid) {
-    const targetRow = grid.row();
-    const targetColumn = grid.column();
-    const shipRow = ship.head.row();
-    const shipColumn = ship.head.column();
+  function hit(row, column) {
     switch (ship.direction) {
       case HORIZONTAL:
-        if (targetRow !== shipRow) return false;
-        if (targetColumn < shipColumn || targetColumn > shipColumn + ship.size) return false;
+        if (row !== ship.row) return false;
+        if (column < ship.column || column > (ship.column + ship.size - 1)) return false;
         break;
       case VERTICAL:
-        if (targetColumn !== shipColumn) return false;
-        if (targetRow < shipRow || targetRow > shipRow + ship.size) return false;
+        if (column !== ship.column) return false;
+        if (row < ship.row || row > (ship.row + ship.size - 1)) return false;
         break;
       default:
         break;
@@ -83,21 +134,16 @@ export default (name, size) => {
     return (ship.hit >= ship.size);
   }
 
-  const api = {
-    put,
+  return {
+    id,
+    size,
+    name,
+    position,
+    isHorizontal,
+    countHits,
     toggleDirection,
+    put,
     hit,
     isSunk,
-  };
-
-  // Unit tests need these private members to work with.
-  if (UNIT_TEST) {
-    api.ship = ship;
-    api.HORIZONTAL = HORIZONTAL;
-    api.VERTICAL = VERTICAL;
-  }
-
-  return {
-    ...api,
   };
 };
