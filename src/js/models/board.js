@@ -1,20 +1,61 @@
-// import Ship from './ship';
+// Comment out this line after unit test.
+// const UNIT_TEST = true;
 
 const DEFAULT_BOARD_SIZE = 10;
 
 /**
- * Create a 10 * 10 game board.
+ * Board factory function.
  * Board magages Ships, and check the hit for user.
  */
-export default (size) => {
+export default (inSize) => {
+  /**
+   * Board plain object.
+   */
   const board = {
     // eslint-disable-next-line no-bitwise
-    size: size | DEFAULT_BOARD_SIZE,
+    size: inSize | DEFAULT_BOARD_SIZE,
     fleet: [],
-    sunk: [],
     hits: [],
     misses: [],
+    intact: [],
   };
+
+  /**
+   * Allow other modules to check the size of the board.
+   * @returns Board size.
+   */
+  function size() {
+    return board.size;
+  }
+
+  /**
+   * Allow other modules to get the list of all intact position.
+   */
+  function intact() {
+    return board.intact;
+  }
+
+  /**
+   * Initialize the board, put all intact position into board.intact array.
+   * The position [row, column] is coded as: "row-column".
+   */
+  function fillIntact() {
+    for (let row = 0; row < board.size; row += 1) {
+      for (let column = 0; column < board.size; column += 1) {
+        board.intact.push(`${row}-${column}`);
+      }
+    }
+  }
+
+  /**
+   * Remove a specific point from the board.intact array.
+   * @param {String} str Position string.
+   */
+  function removeFromIntact(str) {
+    const index = board.intact.findIndex((position) => position === str);
+    if (index === -1) return;
+    board.intact.splice(index, 1);
+  }
 
   /**
    * Check if the new ship sits in the fixed ship's forbiden zone.
@@ -41,13 +82,13 @@ export default (size) => {
   }
 
   /**
-   * Put ship at that position if it's legal.
-   * @param {Number} row Axi Y of the ship head.
-   * @param {Number} column Axi X of the ship head.
-   * @param {Ship} ship The ship object.
-   * @return {Boolean} true if this position is legal for a new ship, otherwise false.
+   * Check if the target position[row, column] is available for a specific ship.
+   * @param {Number} row Target row.
+   * @param {Number} column Target column.
+   * @param {Ship} ship The ship to be put into the board.
+   * @return {Boolean} true if is ok, otherwise false.
    */
-  function putShip(row, column, ship) {
+  function available(row, column, ship) {
     // check head
     if (row < 0
       || row >= board.size
@@ -68,19 +109,105 @@ export default (size) => {
     const newHead = [row, column];
     const newTail = (ship.isHorizontal())
       ? [row, column + ship.size()] : [row + ship.size(), column];
-    if (board.fleet.any((fixedShip) => isOverlap(fixedShip, newHead, newTail))) return false;
-    // legal position to put a new ship
-    ship.put(row, column);
-    board.fleet.push(ship);
+    if (board.fleet.some((fixedShip) => isOverlap(fixedShip, newHead, newTail))) return false;
     return true;
   }
 
-  // function receiveAttack(row, column) {
+  /**
+   * Put ship into a certain position if it's available.
+   * @param {Number} row Axi Y of the ship head.
+   * @param {Number} column Axi X of the ship head.
+   * @param {Ship} ship The ship object.
+   * @return {Boolean} true if this position is legal for a new ship, otherwise false.
+   */
+  function putShip(row, column, ship) {
+    ship.put(row, column);
+    board.fleet.push(ship);
+  }
 
-  // }
+  /**
+   * Remove a ship from the board fleet (only if it's already in the fleet).
+   * @param {Ship} Ship to be removed.
+   */
+  function removeShip(ship) {
+    const index = board.fleet.findIndex((fleetShip) => fleetShip.id() === ship.id());
+    if (index === -1) return;
+    board.fleet.splice(index, 1);
+  }
+
+  /**
+   * Check if two position[row, column] equal to each other.
+   * @param {Array} positionA [row, column]
+   * @param {Array} positionB [row, column]
+   * @returns true if equal, otherwise false.
+   */
+  function positionEqual(positionA, positionB) {
+    return (positionA[0] === positionB[0]) && (positionA[1] === positionB[1]);
+  }
+
+  /**
+   * Check wheather the target exists in attack history board.hits or board.misses.
+   * @param {Array} target [row, column]
+   * @returns true if target has been attacked before, otherwise false.
+   */
+  function alreadyBeenAttacked(target) {
+    return board.hits.some((hit) => positionEqual(hit, target))
+      || board.misses.some((miss) => positionEqual(miss, target));
+  }
+
+  /**
+   * Try to hit each of the ships in the board.fleet,
+   * only if the target position has never been attacked before.
+   * @param {*} row AxiY of target.
+   * @param {*} column AxiX of target.
+   */
+  function receiveAttack(row, column) {
+    const target = [row, column];
+    if (alreadyBeenAttacked(target)) return;
+    const hit = board.fleet.some((fleetShip) => fleetShip.hit(row, column));
+    if (hit) {
+      board.hits.push(target);
+    } else {
+      board.misses.push(target);
+    }
+    removeFromIntact(`${row}-${column}`);
+  }
+
+  /**
+   * Check if all ships are sunk.
+   * @returns true if all ships are sunk, otherwise false.
+   */
+  function allSunk() {
+    return board.fleet.every((fleetShip) => fleetShip.isSunk());
+  }
+
+  /**
+   * Initialize the board.
+   */
+  fillIntact();
+
+  /**
+   * Public API
+   */
+  const api = {
+    size,
+    intact,
+    available,
+    putShip,
+    removeShip,
+    receiveAttack,
+    allSunk,
+  };
+
+  /**
+   * API only for unit test.
+   */
+  // eslint-disable-next-line no-undef
+  if (UNIT_TEST) {
+    api.board = board;
+  }
 
   return {
-    putShip,
-    // receiveAttack,
+    ...api,
   };
 };

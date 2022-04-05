@@ -21,7 +21,7 @@ const VERTICAL = Symbol('vertical');
  */
 export default (inName, inSize) => {
   /**
-   * plain object representing a ship on board.
+   * Ship plain object.
    */
   const ship = {
     id: GEN.next().value,
