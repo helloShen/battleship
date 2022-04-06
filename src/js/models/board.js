@@ -38,6 +38,13 @@ export default (inSize) => {
   }
 
   /**
+   * Allow other modules to check size of current fleet.
+   */
+  function fleetSize() {
+    return board.fleet.length;
+  }
+
+  /**
    * Initialize the board, put all intact position into board.intact array.
    * The position [row, column] is coded as: "row-column".
    */
@@ -138,6 +145,24 @@ export default (inSize) => {
   }
 
   /**
+   * Only used to toggle ships already in the fleet.
+   * @param {Ship} ship Target ship.
+   * @return {Boolean} true if toggled, otherwise false.
+   */
+  function toggleFleetShip(ship) {
+    removeShip(ship);
+    ship.toggleDirection();
+    if (available(...ship.head(), ship)) {
+      putShip(...ship.head(), ship);
+      return true;
+    }
+    // cannot toggle
+    ship.toggleDirection(); // back to orginal direction
+    putShip(...ship.head(), ship); // put back to fleet
+    return false;
+  }
+
+  /**
    * Check if two position[row, column] equal to each other.
    * @param {Array} positionA [row, column]
    * @param {Array} positionB [row, column]
@@ -194,9 +219,11 @@ export default (inSize) => {
   const api = {
     size,
     intact,
+    fleetSize,
     available,
     putShip,
     removeShip,
+    toggleFleetShip,
     receiveAttack,
     allSunk,
   };

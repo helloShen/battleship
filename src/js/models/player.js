@@ -12,18 +12,21 @@ export const HUMAN = Symbol('human');
  */
 export const EASY = Symbol('child');
 export const NORMAL = Symbol('normal');
-export const DIFFICULT = Symbol('difficult');
+export const HARD = Symbol('hard');
 
 /**
  * Player factory function.
- * Player attack 1 time for each turn.
+ * @param {Board} inBoard Player's game board.
+ * @param {Symbol} inType HUMAN or AI.
+ * @param {Symbol} inLevel Optional. AI level.
  */
-export default (inType, inLevel) => {
+export default (inBoard, inType, inLevel) => {
   /**
    * Player plain object.
    */
   const player = {
     type: inType,
+    board: inBoard,
   };
 
   if (player.type === AI) {
@@ -39,21 +42,34 @@ export default (inType, inLevel) => {
     return player.level;
   }
 
-  function randomAttack(board) {
-    if (board.intact().length === 0) return false;
-    const index = Math.floor(Math.random() * board.intact().length);
-    const str = board.intact()[index];
+  /**
+   * Allow Game module to set AI level.
+   * @param {Symbol} level EASY or NORMAL or HARD
+   */
+  function setAiLevel(level) {
+    if (player.type !== AI) return;
+    player.level = level;
+  }
+
+  function board() {
+    return player.board;
+  }
+
+  function randomAttack(opponentBoard) {
+    if (opponentBoard.intact().length === 0) return false;
+    const index = Math.floor(Math.random() * opponentBoard.intact().length);
+    const str = opponentBoard.intact()[index];
     const [rowStr, columnStr] = str.split('-');
-    board.receiveAttack(parseInt(rowStr, 10), parseInt(columnStr, 10));
+    opponentBoard.receiveAttack(parseInt(rowStr, 10), parseInt(columnStr, 10));
     return true;
   }
 
-  function normalAttack(board) {
-    return randomAttack(board);
+  function normalAttack(opponentBoard) {
+    return randomAttack(opponentBoard);
   }
 
-  function smartAttck(board) {
-    return randomAttack(board);
+  function smartAttck(opponentBoard) {
+    return randomAttack(opponentBoard);
   }
 
   /**
@@ -64,20 +80,20 @@ export default (inType, inLevel) => {
    * @param {Board} board The Board object.
    * @param {Function} callback Notice Game module to run next round.
    */
-  function attack(board, callback) {
+  function attack(opponentBoard, callback) {
     if (player.type === AI) {
       switch (player.level) {
         case EASY:
-          randomAttack(board);
+          randomAttack(opponentBoard);
           break;
         case NORMAL:
-          normalAttack(board);
+          normalAttack(opponentBoard);
           break;
-        case DIFFICULT:
-          smartAttck(board);
+        case HARD:
+          smartAttck(opponentBoard);
           break;
         default:
-          randomAttack(board);
+          randomAttack(opponentBoard);
           break;
       }
       callback();
@@ -87,6 +103,8 @@ export default (inType, inLevel) => {
   return {
     isAI,
     aiLevel,
+    setAiLevel,
+    board,
     attack,
   };
 };
