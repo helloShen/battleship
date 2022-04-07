@@ -1,18 +1,27 @@
-// import Ship from './models/ship';
-// import Board from './models/board';
-// import Player from './models/player';
-import Game from './models/game';
+import Game, {
+  AI,
+  HUMAN,
+  EASY,
+  NORMAL,
+  HARD,
+} from './models/game';
 import View from './view';
 
-export default (() => {
+export {
+  AI,
+  HUMAN,
+  EASY,
+  NORMAL,
+  HARD,
+};
 
-  function drawBoard() {
-    Game.init();
-    const playerIds = Game.players().reduce((arr, player) => {
-      arr.push(player.id());
-      return arr;
-    }, []);
-    View.drawBoard(Game.DEFAULT_BOARD_SIZE, playerIds);
+export default (() => {
+  function drawBoard(player1Type, player2Type) {
+    Game.initPlayers(player1Type, player2Type);
+    Game.players().forEach((player) => {
+      const playerType = (player.isAI()) ? 'ai' : 'human';
+      View.drawBoard(Game.DEFAULT_BOARD_SIZE, player.id(), playerType, player.board().canHitShip);
+    });
   }
 
   /**

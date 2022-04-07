@@ -21,29 +21,41 @@ describe('Test autoFillFleet()', () => {
   });
 });
 
-describe('Test init()', () => {
-  test('After init(), should have two player, 1 HUMAN, 1 AI. And AI player\'s board should be autofilled with 5 ships.', () => {
-    Game.init();
+describe('Test initPlayers(), againstAI() and againstHuman().', () => {
+  beforeAll(() => {
+    Game.initPlayers(HUMAN, HUMAN);
+  });
+  test('After initPlayers(), should have two HUMAN player.', () => {
     expect(Game.game.players.length).toBe(2);
-    expect(Game.players()).toBe(2);
-    const humanPlayer = Game.player(0);
-    const aiPlayer = Game.player(1);
-    expect(humanPlayer).toBeTruthy();
-    expect(aiPlayer).toBeTruthy();
-    expect(humanPlayer.isAI()).toBe(false);
-    expect(aiPlayer.isAI()).toBe(true);
-    expect(aiPlayer.board().board.fleet.length).toBe(5);
+    expect(Game.players().length).toBe(2);
+    expect(Game.player(0)).toBeTruthy();
+    expect(Game.player(1)).toBeTruthy();
+    expect(Game.player(0).isAI()).toBe(false);
+    expect(Game.player(1).isAI()).toBe(false);
+  });
+  test('Call againstAi(). Player 2 should be AI. It\'s board should be autofilled with 5 ships.', () => {
+    Game.againstAI(HARD);
+    expect(Game.player(1).isAI()).toBe(true);
+    expect(Game.player(1).board().fleetSize()).toBe(5);
+    expect(Game.player(1).aiLevel()).toBe(HARD);
+  });
+  test('Call againstHuman(). Player 2 should be HUMAN. It\'s board should be empty.', () => {
+    Game.againstHuman();
+    expect(Game.player(1).isAI()).toBe(false);
+    expect(Game.player(1).board().fleetSize()).toBe(0);
   });
 });
 
 describe('Test start(), nextTurn().', () => {
+  beforeAll(() => {
+    Game.initPlayers(HUMAN, AI);
+  });
   test('After init() and autofill human players board, start() should return true. And currentPlayer should be 0(humanPlayer). Then call nextTurn(), aiPlayer will give a random shot, and callback humanPlayer\'s turn.', () => {
-    Game.init();
-    const humanPlayer = Game.game.players[0];
-    const aiPlayer = Game.game.players[1];
-    expect(Game.start(EASY)).toBe(false);
+    const humanPlayer = Game.player(0);
+    const aiPlayer = Game.player(1);
+    expect(Game.start()).toBe(false);
     Game.autofillFleet(humanPlayer.board());
-    expect(humanPlayer.board().board.fleet.length).toBe(5);
+    expect(humanPlayer.board().fleetSize()).toBe(5);
     expect(Game.start(EASY)).toBe(true);
     expect(Game.game.currentPlayer).toBe(0);
     Game.nextTurn(); // aiPlayer plays his turn and callback humanPlayer's turn.

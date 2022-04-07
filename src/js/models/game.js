@@ -9,6 +9,14 @@ import Player, {
   HARD,
 } from './player';
 
+export {
+  AI,
+  HUMAN,
+  EASY,
+  NORMAL,
+  HARD,
+};
+
 let UNIT_TEST;
 // eslint-disable-next-line prefer-const
 UNIT_TEST = true; // Comment out this line once finish the unit tests.
@@ -83,18 +91,36 @@ export default (() => {
   }
 
   /**
-   * Initialize two players with empty board.
-   * Currently is 1 human player against 1 AI player.
+   * Initialize two players with randomly autofilled board.
+   * AI player's default level is EASY.
+   * @param {Symbol} player1Type HUMAN or AI
+   * @param {Symbol} player2Type HUMAN or AI
+   */
+  function initPlayers(player1Type, player2Type) {
+    game.players = [];
+    const playerTypes = [player1Type, player2Type];
+    for (let i = 0; i < playerTypes.length; i += 1) {
+      const newPlayer = Player(i, Board(DEFAULT_BOARD_SIZE), playerTypes[i]);
+      autofillFleet(newPlayer.board());
+      game.players.push(newPlayer);
+    }
+  }
+
+  /**
+   * Switch the player 2 to AI.
+   * It can also be used to change AI level.
    * AI player's board is filled automatically.
    */
-  function init() {
-    const humanPlayer = Player(0, Board(DEFAULT_BOARD_SIZE), HUMAN);
-    const aiPlayer = Player(1, Board(DEFAULT_BOARD_SIZE), AI);
-    autofillFleet(aiPlayer.board());
-    game.players = [
-      humanPlayer,
-      aiPlayer,
-    ];
+  function againstAI(level) {
+    game.players[1] = Player(1, Board(DEFAULT_BOARD_SIZE), AI, level);
+    autofillFleet(game.players[1].board());
+  }
+
+  /**
+   * Switch the player 2 to HUMAN.
+   */
+  function againstHuman() {
+    game.players[1] = Player(1, Board(DEFAULT_BOARD_SIZE), HUMAN);
   }
 
   /**
@@ -118,29 +144,21 @@ export default (() => {
   }
 
   /**
-   * When player has,
-   *  1. put all his ships into the board.
-   *  2. picked the level of his/her AI opponent's level.
+   * When player has put all his ships into the board.
    * Controller call this method to initialize the game.
    *
    * Before start the game this function will check
    * wheather all requirements above have been met.
    *
    * @return {Boolean}
-   *  true, if all requirements has been met, the game is started.
+   *  true, if all requirements have been met, the game is started.
    *  otherwise, false.
    */
-  function start(level) {
+  function start() {
     // check configurations
     if (game.players.some((thePlayer) => thePlayer.board().fleetSize()
         !== STANDARD_FLEET.length)) {
       return false;
-    }
-    if (!level) return false;
-    // set AI level if exists.
-    const index = game.players.findIndex((thePlayer) => thePlayer.isAI());
-    if (index !== -1) {
-      game.players[index].setAiLevel(level);
     }
     // Start game.
     // Set to the last player. nextTurn() will move on.
@@ -155,7 +173,9 @@ export default (() => {
     player,
     autofillFleet,
     nextTurn,
-    init,
+    initPlayers,
+    againstAI,
+    againstHuman,
     start,
   };
 

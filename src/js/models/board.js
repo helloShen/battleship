@@ -183,6 +183,16 @@ export default (inSize) => {
   }
 
   /**
+   * Check if the attack can hit a ship.
+   * @param {Number} row Axi Y of target grid.
+   * @param {Number} column Axi X of target grid.
+   * @returns true if can hit, otherwise false.
+   */
+  function canHitShip(row, column) {
+    return board.fleet.some((fleetShip) => fleetShip.hit(row, column));
+  }
+
+  /**
    * Try to hit each of the ships in the board.fleet,
    * only if the target position has never been attacked before.
    * @param {*} row AxiY of target.
@@ -191,7 +201,7 @@ export default (inSize) => {
   function receiveAttack(row, column) {
     const target = [row, column];
     if (alreadyBeenAttacked(target)) return;
-    const hit = board.fleet.some((fleetShip) => fleetShip.hit(row, column));
+    const hit = canHitShip(row, column);
     if (hit) {
       board.hits.push(target);
     } else {
@@ -224,6 +234,7 @@ export default (inSize) => {
     putShip,
     removeShip,
     toggleFleetShip,
+    canHitShip,
     receiveAttack,
     allSunk,
   };

@@ -9,11 +9,32 @@
 
 .board {
   margin: 2rem;
+}
+
+.board > .seaLayer,
+.board > .shipLayer {
   display: grid;
   grid-template-columns: repeat(var(--board-size), var(--grid-size));
   grid-template-rows: repeat(var(--board-size), var(--grid-size));
 }
 
-.board > .grid {
-  border: 1px solid var(--black);
+.board > .shipLayer.show {
+  z-index: 1;
+}
+
+.board > .shipLayer.hide {
+  z-index: -1;
+}
+
+.board .grid {
+  border-bottom: 1px solid var(--black);
+  border-right: 1px solid var(--black);
+}
+
+.board .grid.upperBorder {
+  border-top: 1px solid var(--black);
+}
+
+.board .grid.leftBorder {
+  border-left: 1px solid var(--black);
 }
