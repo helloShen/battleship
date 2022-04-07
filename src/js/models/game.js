@@ -67,13 +67,29 @@ export default (() => {
   }
 
   /**
+   * Return an array of all players.
+   * @returns Array of players
+   */
+  function players() {
+    return game.players;
+  }
+
+  /**
+   * Search Player object by their id.
+   * @param {Number} id player id.
+   */
+  function player(id) {
+    return game.players.find((thePlayer) => thePlayer.id() === id);
+  }
+
+  /**
    * Initialize two players with empty board.
    * Currently is 1 human player against 1 AI player.
    * AI player's board is filled automatically.
    */
   function init() {
-    const humanPlayer = Player(Board(DEFAULT_BOARD_SIZE), HUMAN);
-    const aiPlayer = Player(Board(DEFAULT_BOARD_SIZE), AI);
+    const humanPlayer = Player(0, Board(DEFAULT_BOARD_SIZE), HUMAN);
+    const aiPlayer = Player(1, Board(DEFAULT_BOARD_SIZE), AI);
     autofillFleet(aiPlayer.board());
     game.players = [
       humanPlayer,
@@ -96,9 +112,9 @@ export default (() => {
    */
   function nextTurn() {
     game.currentPlayer = nextIndex();
-    const player = game.players[game.currentPlayer];
+    const currPlayer = game.players[game.currentPlayer];
     const opponent = game.players[nextIndex()];
-    player.attack(opponent.board(), nextTurn);
+    currPlayer.attack(opponent.board(), nextTurn);
   }
 
   /**
@@ -116,13 +132,13 @@ export default (() => {
    */
   function start(level) {
     // check configurations
-    if (game.players.some((player) => player.board().fleetSize()
+    if (game.players.some((thePlayer) => thePlayer.board().fleetSize()
         !== STANDARD_FLEET.length)) {
       return false;
     }
     if (!level) return false;
     // set AI level if exists.
-    const index = game.players.findIndex((player) => player.isAI());
+    const index = game.players.findIndex((thePlayer) => thePlayer.isAI());
     if (index !== -1) {
       game.players[index].setAiLevel(level);
     }
@@ -134,10 +150,13 @@ export default (() => {
   }
 
   const api = {
+    DEFAULT_BOARD_SIZE,
+    players,
+    player,
+    autofillFleet,
+    nextTurn,
     init,
     start,
-    nextTurn,
-    autofillFleet,
   };
 
   if (UNIT_TEST) {

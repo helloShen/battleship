@@ -9,8 +9,8 @@ import Player, {
 } from '../player';
 import Board from '../board';
 
-const aiPlayer = Player(Board(2), AI, EASY);
-const humanPlayer = Player(Board(2), HUMAN);
+const humanPlayer = Player(0, Board(2), HUMAN);
+const aiPlayer = Player(1, Board(2), AI, EASY);
 const mockCallback = jest.fn();
 
 describe('1 AI player and 1 human player created.', () => {
@@ -18,8 +18,17 @@ describe('1 AI player and 1 human player created.', () => {
     expect(aiPlayer.isAI()).toBe(true);
     expect(aiPlayer.aiLevel()).toBe(EASY);
   });
+  test('humanPlayer id is 0', () => {
+    expect(humanPlayer.id()).toBe(0);
+  });
+  test('aiPlayer id is 1', () => {
+    expect(aiPlayer.id()).toBe(1);
+  });
   test('humanPlayer type is HUMAN.', () => {
     expect(humanPlayer.isAI()).toBe(false);
+  });
+  test('aiPlayer type is AI.', () => {
+    expect(aiPlayer.isAI()).toBe(true);
   });
   test('Both players\'s board is truthy.', () => {
     expect(aiPlayer.board()).toBeTruthy();

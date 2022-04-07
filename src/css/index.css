@@ -1,0 +1,19 @@
+:root {
+  /* board */
+  --board-size: 10;
+  --grid-size: 2rem;
+
+  /* color */
+  --black: #000000;
+}
+
+.board {
+  margin: 2rem;
+  display: grid;
+  grid-template-columns: repeat(var(--board-size), var(--grid-size));
+  grid-template-rows: repeat(var(--board-size), var(--grid-size));
+}
+
+.board > .grid {
+  border: 1px solid var(--black);
+}

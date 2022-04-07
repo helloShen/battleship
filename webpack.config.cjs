@@ -22,6 +22,9 @@ module.exports = {
       },
       {
         test: /\.m?js$/,
+        resolve: {
+          fullySpecified: false,
+        },
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
@@ -42,5 +45,9 @@ module.exports = {
     assetModuleFilename: 'assets/[hash][ext]',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
+  },
+  resolve: {
+    enforceExtension: false,
+    extensions: ['.js', '.jsx', '...'],
   },
 };

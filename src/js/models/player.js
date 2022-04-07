@@ -20,11 +20,12 @@ export const HARD = Symbol('hard');
  * @param {Symbol} inType HUMAN or AI.
  * @param {Symbol} inLevel Optional. AI level.
  */
-export default (inBoard, inType, inLevel) => {
+export default (inId, inBoard, inType, inLevel) => {
   /**
    * Player plain object.
    */
   const player = {
+    id: inId,
     type: inType,
     board: inBoard,
   };
@@ -33,10 +34,26 @@ export default (inBoard, inType, inLevel) => {
     player.level = inLevel || EASY; // default is EASY
   }
 
+  /**
+   * Get player id.
+   * @returns Player id.
+   */
+  function id() {
+    return player.id;
+  }
+
+  /**
+   * Check player type.
+   * @returns true if is player is AI.
+   */
   function isAI() {
     return player.type === AI;
   }
 
+  /**
+   * Check AI player's level.
+   * @returns AI player's level. undefined if it's not AI player.
+   */
   function aiLevel() {
     if (player.type !== AI) return undefined;
     return player.level;
@@ -101,6 +118,7 @@ export default (inBoard, inType, inLevel) => {
   }
 
   return {
+    id,
     isAI,
     aiLevel,
     setAiLevel,

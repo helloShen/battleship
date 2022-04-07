@@ -1,4 +1,6 @@
-import Grid from './models/grid.js';
+// eslint-disable-next-line import/extensions
+import Controller from './controller';
+import css from '../css/index.css';
 
-const grid = Grid(5, 'A');
-console.log(grid.coordinate());
+Controller.drawBoard();
+Controller.enableBoardReceiveAttack();

@@ -25,8 +25,11 @@ describe('Test init()', () => {
   test('After init(), should have two player, 1 HUMAN, 1 AI. And AI player\'s board should be autofilled with 5 ships.', () => {
     Game.init();
     expect(Game.game.players.length).toBe(2);
-    const humanPlayer = Game.game.players[0];
-    const aiPlayer = Game.game.players[1];
+    expect(Game.players()).toBe(2);
+    const humanPlayer = Game.player(0);
+    const aiPlayer = Game.player(1);
+    expect(humanPlayer).toBeTruthy();
+    expect(aiPlayer).toBeTruthy();
     expect(humanPlayer.isAI()).toBe(false);
     expect(aiPlayer.isAI()).toBe(true);
     expect(aiPlayer.board().board.fleet.length).toBe(5);
