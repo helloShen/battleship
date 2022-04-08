@@ -80,13 +80,13 @@ export default (inSize) => {
     const overlapColumnStart = Math.max(0, headColumn - 1);
     const overlapRowEnd = Math.min(board.size - 1, tailRow + 1);
     const overlapColumnEnd = Math.min(board.size - 1, tailColumn + 1);
-    if (newHead[0] - newTail[0] === 0) {
+    if (newHead[0] - newTail[0] === 0) { // is horizontal
       if (newHead[0] < overlapRowStart || newHead[0] > overlapRowEnd) return false;
       if (newTail[1] < overlapColumnStart || newHead[1] > overlapColumnEnd) return false;
       return true;
     }
     if (newHead[1] < overlapColumnStart || newHead[1] > overlapColumnEnd) return false;
-    if (newTail[0] < overlapColumnStart || newHead[0] > overlapRowEnd) return false;
+    if (newTail[0] < overlapRowStart || newHead[0] > overlapRowEnd) return false;
     return true;
   }
 
@@ -116,8 +116,7 @@ export default (inSize) => {
     }
     // check overlap
     const newHead = [row, column];
-    const newTail = (ship.isHorizontal())
-      ? [row, column + ship.size()] : [row + ship.size(), column];
+    const newTail = [tailRow, tailColumn];
     if (board.fleet.some((fixedShip) => isOverlap(fixedShip, newHead, newTail))) return false;
     return true;
   }
@@ -204,13 +203,24 @@ export default (inSize) => {
   }
 
   /**
+   * Actually try to hit a ship.
+   * @param {Number} row Axi Y of target grid.
+   * @param {Number} column Axi X of target grid.
+   * @returns true if can hit, otherwise false.
+   */
+  function tryHitShip(row, column) {
+    return board.fleet.some((fleetShip) => fleetShip.hit(row, column));
+  }
+
+  /**
    * Check if the attack can hit a ship.
+   * This function doesn't actually hit ship.
    * @param {Number} row Axi Y of target grid.
    * @param {Number} column Axi X of target grid.
    * @returns true if can hit, otherwise false.
    */
   function canHitShip(row, column) {
-    return board.fleet.some((fleetShip) => fleetShip.hit(row, column));
+    return board.fleet.some((fleetShip) => fleetShip.canHit(row, column));
   }
 
   /**
@@ -218,12 +228,16 @@ export default (inSize) => {
    * only if the target position has never been attacked before.
    * @param {Number} row AxiY of target.
    * @param {Number} column AxiX of target.
-   * @return true if hit, false if missed.
+   * @return {Boolean}
+   *  true, if hit.
+   *  false, if missed.
+   *  undefined, if already been attacked before.
    */
   function receiveAttack(row, column) {
     const target = [row, column];
+    // Must be undefined. If return false, will be considered as a miss.
     if (alreadyBeenAttacked(...target)) return undefined;
-    const hit = canHitShip(row, column);
+    const hit = tryHitShip(row, column);
     if (hit) {
       board.hits.push(target);
     } else {
@@ -231,6 +245,17 @@ export default (inSize) => {
     }
     removeFromIntact(`${row}-${column}`);
     return hit;
+  }
+
+  /**
+   * Report all coordinates of sunk ships.
+   * @return {Array} An array of the coordinates of all sunk ships.
+   */
+  function reportSunk() {
+    return board.fleet.reduce((arr, fleetShip) => {
+      if (fleetShip.isSunk()) arr.push(fleetShip.coordinates());
+      return arr;
+    }, []);
   }
 
   /**
@@ -262,6 +287,7 @@ export default (inSize) => {
     alreadyBeenAttacked,
     canHitShip,
     receiveAttack,
+    reportSunk,
     allSunk,
   };
 

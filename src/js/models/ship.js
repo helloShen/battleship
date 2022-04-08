@@ -116,13 +116,13 @@ export default (inName, inSize) => {
   }
 
   /**
-   * Assertion: Each grid of the board can only be attecked once.
-   * The ship don't have to worry about wheather a single part is hit twice.
+   * Just check if there's a ship sits on a certain grid.
+   * This function doesn't actually hit the ship.
    * @param {Number} row Axi X of opponent's attack.
    * @param {Number} column Axi Y of opponent's attack.
-   * @return {Boolean} true if the ship is hit, otherwise false.
+   * @return {Boolean} true if it's a hit, otherwise false.
    */
-  function hit(row, column) {
+  function canHit(row, column) {
     switch (ship.direction) {
       case HORIZONTAL:
         if (row !== ship.row) return false;
@@ -135,8 +135,20 @@ export default (inName, inSize) => {
       default:
         break;
     }
-    ship.hit += 1;
     return true;
+  }
+
+  /**
+   * Assertion: Each grid of the board can only be attecked once.
+   * The ship don't have to worry about wheather a single part is hit twice.
+   * @param {Number} row Axi X of opponent's attack.
+   * @param {Number} column Axi Y of opponent's attack.
+   * @return {Boolean} true if the ship is hit, otherwise false.
+   */
+  function hit(row, column) {
+    const result = canHit(row, column);
+    if (result) ship.hit += 1;
+    return result;
   }
 
   /**
@@ -146,6 +158,31 @@ export default (inName, inSize) => {
    */
   function isSunk() {
     return (ship.hit >= ship.size);
+  }
+
+  /**
+   * @return An array of coordinates of that ship.
+   */
+  function coordinates() {
+    const result = [];
+    for (let i = 0; i < ship.size; i += 1) {
+      if (ship.direction === HORIZONTAL) {
+        result.push([ship.row, ship.column + i]);
+      } else {
+        result.push([ship.row + i, ship.column]);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * @return
+   *  if is sunk, return an array of coordinates of that ship.
+   *  otherwise, return undefined.
+   */
+  function reportSunk() {
+    if (!isSunk) return undefined;
+    return coordinates();
   }
 
   return {
@@ -158,7 +195,10 @@ export default (inName, inSize) => {
     countHits,
     toggleDirection,
     put,
+    canHit,
     hit,
     isSunk,
+    coordinates,
+    reportSunk,
   };
 };

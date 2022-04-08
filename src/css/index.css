@@ -10,10 +10,12 @@
   --black: black;
   --gray: gray;
   --blue: blue;
+  --orange: orange;
   --red: red;
   --board-border: var(--black);
-  --hit: var(--red);
+  --hit: var(--orange);
   --missed: var(--gray);
+  --sunk: var(--red);
 }
 
 .board {
@@ -64,4 +66,8 @@
 
 .board .grid.alreadyMissed {
   background-color: var(--missed);
+}
+
+.board .grid.alreadyHit.sunk {
+  background-color: var(--sunk);
 }

@@ -54,8 +54,8 @@ export default (() => {
    * @param {Board} board Target board.
    * @return Random position.
    */
-  function randomPosition(board) {
-    return [random(board.size()), random(board.size())];
+  function randomPosition(size) {
+    return [random(size), random(size)];
   }
 
   /**
@@ -66,9 +66,9 @@ export default (() => {
     STANDARD_FLEET.forEach((template) => {
       const ship = Ship(...template);
       if (random(2) === 1) ship.toggleDirection();
-      let position = randomPosition(board);
+      let position = randomPosition(board.size());
       while (!board.available(...position, ship)) {
-        position = randomPosition(board);
+        position = randomPosition(board.size());
       }
       board.putShip(...position, ship);
     });
@@ -135,9 +135,8 @@ export default (() => {
    * If is human player, do nothing(wait for human to click
    * on the board to trigger an attack event).
    *
-   * AI Player's attack function only makes a dicision of
-   * where to attack, and callback controller to do the
-   * rest of the job.
+   * AI Player's attack function only decides where to attack,
+   * and callback controller to do the rest of the job.
    */
   function nextTurn(controllerAttackCallback) {
     game.currentPlayer = nextIndex();

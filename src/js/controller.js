@@ -25,21 +25,36 @@ export default (() => {
   }
 
   /**
-   * Call View module to draw the board for each player.
+   * Call View module to draw the board of a certain player.
    */
-  function drawBoard() {
+  function drawASingleBoard(player) {
+    const playerType = (player.isAI()) ? 'ai' : 'human';
+    const board = player.board();
+    View.drawBoard(
+      Game.DEFAULT_BOARD_SIZE,
+      player.id(),
+      playerType,
+      board.canHitShip,
+      board.alreadyHit,
+      board.alreadyMissed,
+    );
+  }
+
+  /**
+   * Draw board for each player.
+   */
+  function drawBoards() {
     Game.players().forEach((player) => {
-      const playerType = (player.isAI()) ? 'ai' : 'human';
-      const board = player.board();
-      View.drawBoard(
-        Game.DEFAULT_BOARD_SIZE,
-        player.id(),
-        playerType,
-        board.canHitShip,
-        board.alreadyHit,
-        board.alreadyMissed,
-      );
+      drawASingleBoard(player);
     });
+  }
+
+  /**
+   * Gameover logic.
+   */
+  function gameover(loserId) {
+    // eslint-disable-next-line no-alert
+    alert(`${loserId} lose!`);
   }
 
   /**
@@ -50,18 +65,16 @@ export default (() => {
    * @param {Number} row Axi Y of target gird.
    * @param {Number} column Axi X of target grid.
    * @param {Number} opponentId Id of opponent player.
-   * @param {Function} renderCallback Render the grid color according
+   * @param {Function} renderSeaCallback Render the grid color according
    * to the attack result(hit or miss).
    */
-  function playerAttack(row, column, opponentId, renderCallback) {
+  function playerAttack(row, column, opponentId) {
     const board = Game.player(opponentId).board();
     if (board.alreadyBeenAttacked(row, column)) return;
     const result = board.receiveAttack(row, column);
-    if (renderCallback) {
-      renderCallback(result);
-    } else {
-      View.renderSeaAfterAttack(row, column, opponentId, result);
-    }
+    View.renderSeaAfterAttack(row, column, opponentId, result);
+    View.renderSunkShips(opponentId, board.reportSunk());
+    if (board.allSunk()) gameover(opponentId);
     Game.nextTurn(playerAttack); // pass itself to the Game module as a callback.
   }
 
@@ -79,7 +92,8 @@ export default (() => {
 
   return {
     initPlayersAndBoards,
-    drawBoard,
+    drawASingleBoard,
+    drawBoards,
     enableBoardReceiveAttack,
     startGame,
   };

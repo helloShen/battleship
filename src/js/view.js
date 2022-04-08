@@ -127,7 +127,23 @@ export default (() => {
   }
 
   /**
-   * Click on board will callback controller's userAttack() function.
+   * Mark all sunk ships of that player on Sea Layer.
+   * @param {Number} playerId Player id.
+   * @param {Array} sunkCoordinates coordinates of all sunk ships.
+   */
+  function renderSunkShips(playerId, sunkCoordinates) {
+    const playerElement = ELEMENTS.players[playerId];
+    const boardElement = playerElement.querySelector('.board > .seaLayer');
+    sunkCoordinates.forEach((coordinates) => {
+      coordinates.forEach((coordinate) => {
+        const grid = boardElement.querySelector(`.grid[data-row="${coordinate[0]}"][data-column="${coordinate[1]}"]`);
+        grid.classList.add('sunk');
+      });
+    });
+  }
+
+  /**
+   * Click on board will callback controller's playerAttack() function.
    * @param {Element} boardElement Target board container element in DOM.
    * @param {Function} callback Actual attack logic resides in controller.
    */
@@ -140,14 +156,6 @@ export default (() => {
           parseInt(grid.dataset.row, 10),
           parseInt(grid.dataset.column, 10),
           parseInt(playerElement.dataset.id, 10),
-          (attackResult) => {
-            if (attackResult === undefined) return;
-            if (attackResult) { // hit
-              grid.classList.add('alreadyHit');
-            } else { // miss
-              grid.classList.add('alreadyMissed');
-            }
-          },
         ));
       });
     });
@@ -158,6 +166,7 @@ export default (() => {
   return {
     drawBoard,
     renderSeaAfterAttack,
+    renderSunkShips,
     bindReceiveAttack,
   };
 })();
