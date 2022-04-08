@@ -173,13 +173,34 @@ export default (inSize) => {
   }
 
   /**
+   * Check wheather the target position has been hit before.
+   * @param {Number} row Axi Y of target grid.
+   * @param {Number} column Axi X of target grid.
+   * @returns true if target has been hit before, otherwise false.
+   */
+  function alreadyHit(row, column) {
+    return board.hits.some((hit) => positionEqual(hit, [row, column]));
+  }
+
+  /**
+   * Check wheather the target position has been attacked
+   * but it was a miss.
+   * @param {Number} row Axi Y of target grid.
+   * @param {Number} column Axi X of target grid.
+   * @returns true if it was a miss, otherwise false.
+   */
+  function alreadyMissed(row, column) {
+    return board.misses.some((miss) => positionEqual(miss, [row, column]));
+  }
+
+  /**
    * Check wheather the target exists in attack history board.hits or board.misses.
-   * @param {Array} target [row, column]
+   * @param {Number} row Axi Y of target grid.
+   * @param {Number} column Axi X of target grid.
    * @returns true if target has been attacked before, otherwise false.
    */
-  function alreadyBeenAttacked(target) {
-    return board.hits.some((hit) => positionEqual(hit, target))
-      || board.misses.some((miss) => positionEqual(miss, target));
+  function alreadyBeenAttacked(row, column) {
+    return alreadyHit(row, column) || alreadyMissed(row, column);
   }
 
   /**
@@ -195,12 +216,13 @@ export default (inSize) => {
   /**
    * Try to hit each of the ships in the board.fleet,
    * only if the target position has never been attacked before.
-   * @param {*} row AxiY of target.
-   * @param {*} column AxiX of target.
+   * @param {Number} row AxiY of target.
+   * @param {Number} column AxiX of target.
+   * @return true if hit, false if missed.
    */
   function receiveAttack(row, column) {
     const target = [row, column];
-    if (alreadyBeenAttacked(target)) return;
+    if (alreadyBeenAttacked(...target)) return undefined;
     const hit = canHitShip(row, column);
     if (hit) {
       board.hits.push(target);
@@ -208,6 +230,7 @@ export default (inSize) => {
       board.misses.push(target);
     }
     removeFromIntact(`${row}-${column}`);
+    return hit;
   }
 
   /**
@@ -234,6 +257,9 @@ export default (inSize) => {
     putShip,
     removeShip,
     toggleFleetShip,
+    alreadyHit,
+    alreadyMissed,
+    alreadyBeenAttacked,
     canHitShip,
     receiveAttack,
     allSunk,

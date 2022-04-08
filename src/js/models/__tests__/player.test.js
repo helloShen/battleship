@@ -41,22 +41,17 @@ describe('1 AI player and 1 human player created.', () => {
 });
 
 describe('humanPlayer attack first.', () => {
-  test('it should not invoke callback function.', () => {
+  test('it should invoke callback function.', () => {
     humanPlayer.attack(aiPlayer.board(), mockCallback);
-    expect(mockCallback.mock.calls.length).toBe(0);
-  });
-  test('board still has 4 intact grids (2 * 2 board).', () => {
-    expect(aiPlayer.board().board.size).toBe(2);
-    expect(aiPlayer.board().board.intact.length).toBe(4);
+    expect(mockCallback.mock.calls.length).toBe(1);
+    expect(mockCallback.mock.calls[0]).toBeUndefined();
   });
 });
 
 describe('aiPlayer attack now.', () => {
   test('After attack, callback function should be invoked this time.', () => {
     aiPlayer.attack(humanPlayer.board(), mockCallback);
-    expect(mockCallback.mock.calls.length).toBe(1);
-  });
-  test('3 intact grids left in board.', () => {
-    expect(humanPlayer.board().board.intact.length).toBe(3);
+    expect(mockCallback.mock.calls.length).toBe(2);
+    expect(mockCallback.mock.calls[1].length).toBe(2);
   });
 });

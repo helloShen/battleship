@@ -77,36 +77,56 @@ describe('Test removeShip().', () => {
   });
 });
 
-describe('Test board.receiveAttack().', () => {
+describe('Test board.receiveAttack(), alreadyHit(), alreadyMissed().', () => {
   test('Attack [2, 3] should hit.', () => {
-    board.receiveAttack(2, 3);
+    expect(board.receiveAttack(2, 3)).toBe(true);
     expect(board.board.hits.length).toBe(1);
     expect(board.board.fleet[0].countHits()).toBe(1);
   });
+  test('Check hit history, alreadyHit(2, 3) should return true. alreadyMissed(2, 3) should return false', () => {
+    expect(board.alreadyHit(2, 3)).toBe(true);
+    expect(board.alreadyMissed(2, 3)).toBe(false);
+  });
   test('Attack [2, 4] should hit.', () => {
-    board.receiveAttack(2, 4);
+    expect(board.receiveAttack(2, 4)).toBe(true);
     expect(board.board.hits.length).toBe(2);
     expect(board.board.fleet[0].countHits()).toBe(2);
   });
+  test('Check hit history, alreadyHit(2, 4) should return true. alreadyMissed(2, 4) should return false.', () => {
+    expect(board.alreadyHit(2, 4)).toBe(true);
+    expect(board.alreadyMissed(2, 4)).toBe(false);
+  });
   test('Attack [2, 5] should hit.', () => {
-    board.receiveAttack(2, 5);
+    expect(board.receiveAttack(2, 5)).toBe(true);
     expect(board.board.hits.length).toBe(3);
     expect(board.board.fleet[0].countHits()).toBe(3);
   });
+  test('Check hit history, alreadyHit(2, 5) should return true. alreadyMissed(2, 4) should return false.', () => {
+    expect(board.alreadyHit(2, 5)).toBe(true);
+    expect(board.alreadyMissed(2, 5)).toBe(false);
+  });
   test('Attack [2, 6] should miss.', () => {
-    board.receiveAttack(2, 6);
+    expect(board.receiveAttack(2, 6)).toBe(false);
     expect(board.board.hits.length).toBe(3);
     expect(board.board.misses.length).toBe(1);
     expect(board.board.fleet[0].countHits()).toBe(3);
   });
+  test('Check hit history, alreadyHit(2, 6) should return false, alreadyMissed(2, 6) should return true.', () => {
+    expect(board.alreadyHit(2, 6)).toBe(false);
+    expect(board.alreadyMissed(2, 6)).toBe(true);
+  });
   test('Attack [3, 5] should miss.', () => {
-    board.receiveAttack(3, 5);
+    expect(board.receiveAttack(3, 5)).toBe(false);
     expect(board.board.hits.length).toBe(3);
     expect(board.board.misses.length).toBe(2);
     expect(board.board.fleet[0].countHits()).toBe(3);
   });
+  test('Check hit history, alreadyHit(3, 5) should return false, alreadyMissed(3, 5) should return true.', () => {
+    expect(board.alreadyHit(3, 5)).toBe(false);
+    expect(board.alreadyMissed(3, 5)).toBe(true);
+  });
   test('Attack [3, 5] again, nothing happens.', () => {
-    board.receiveAttack(3, 5);
+    expect(board.receiveAttack(3, 5)).toBeUndefined();
     expect(board.board.hits.length).toBe(3);
     expect(board.board.misses.length).toBe(2);
     expect(board.board.fleet[0].countHits()).toBe(3);

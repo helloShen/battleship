@@ -72,49 +72,58 @@ export default (inId, inBoard, inType, inLevel) => {
     return player.board;
   }
 
+  /**
+   * Randomly pick a target from opponent board's intact list.
+   * @param {Board} opponentBoard Oppoenent's board object.
+   * @returns the target coordinate
+   */
   function randomAttack(opponentBoard) {
-    if (opponentBoard.intact().length === 0) return false;
+    if (opponentBoard.intact().length === 0) return undefined;
     const index = Math.floor(Math.random() * opponentBoard.intact().length);
     const str = opponentBoard.intact()[index];
     const [rowStr, columnStr] = str.split('-');
-    opponentBoard.receiveAttack(parseInt(rowStr, 10), parseInt(columnStr, 10));
-    return true;
+    return [parseInt(rowStr, 10), parseInt(columnStr, 10)];
   }
 
+  /**
+   * Pick(with normal strategy) a target from opponent board's intact list.
+   * @param {Board} opponentBoard Oppoenent's board object.
+   * @returns the target coordinate
+   */
   function normalAttack(opponentBoard) {
     return randomAttack(opponentBoard);
   }
 
+  /**
+   * Pick(with a smart strategy) a target from opponent board's intact list.
+   * @param {Board} opponentBoard Oppoenent's board object.
+   * @returns the target coordinate
+   */
   function smartAttck(opponentBoard) {
     return randomAttack(opponentBoard);
   }
 
   /**
-   * ==> AI player will attack immediately,
-   * then callback game module to go to next round.
-   * ==> Human player will do nothing.
-   * It will not callback game module to go to the next round.
    * @param {Board} board The Board object.
    * @param {Function} callback Notice Game module to run next round.
+   * @return
+   *  ==> AI player return the coordinate of the target it wants to attack.
+   *  ==> Human player will return undefined.
    */
-  function attack(opponentBoard, callback) {
+  function attack(opponentBoard) {
     if (player.type === AI) {
       switch (player.level) {
         case EASY:
-          randomAttack(opponentBoard);
-          break;
+          return randomAttack(opponentBoard);
         case NORMAL:
-          normalAttack(opponentBoard);
-          break;
+          return normalAttack(opponentBoard);
         case HARD:
-          smartAttck(opponentBoard);
-          break;
+          return smartAttck(opponentBoard);
         default:
-          randomAttack(opponentBoard);
-          break;
+          return randomAttack(opponentBoard);
       }
-      callback();
     }
+    return undefined; // human player return undefined
   }
 
   return {

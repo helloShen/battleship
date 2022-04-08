@@ -21,9 +21,9 @@ describe('Test autoFillFleet()', () => {
   });
 });
 
-describe('Test initPlayers(), againstAI() and againstHuman().', () => {
+describe('Test initPlayersAndBoards(), againstAI() and againstHuman().', () => {
   beforeAll(() => {
-    Game.initPlayers(HUMAN, HUMAN);
+    Game.initPlayersAndBoards(HUMAN, HUMAN);
   });
   test('After initPlayers(), should have two HUMAN player.', () => {
     expect(Game.game.players.length).toBe(2);
@@ -48,15 +48,14 @@ describe('Test initPlayers(), againstAI() and againstHuman().', () => {
 
 describe('Test start(), nextTurn().', () => {
   beforeAll(() => {
-    Game.initPlayers(HUMAN, AI);
+    Game.initPlayersAndBoards(HUMAN, AI);
   });
   test('After init() and autofill human players board, start() should return true. And currentPlayer should be 0(humanPlayer). Then call nextTurn(), aiPlayer will give a random shot, and callback humanPlayer\'s turn.', () => {
     const humanPlayer = Game.player(0);
     const aiPlayer = Game.player(1);
-    expect(Game.start()).toBe(false);
-    Game.autofillFleet(humanPlayer.board());
     expect(humanPlayer.board().fleetSize()).toBe(5);
-    expect(Game.start(EASY)).toBe(true);
+    expect(aiPlayer.board().fleetSize()).toBe(5);
+    expect(Game.start()).toBe(true);
     expect(Game.game.currentPlayer).toBe(0);
     Game.nextTurn(); // aiPlayer plays his turn and callback humanPlayer's turn.
     expect(Game.game.currentPlayer).toBe(0); // Still humanPlayer turn.

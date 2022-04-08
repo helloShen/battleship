@@ -25,10 +25,13 @@ export default (() => {
 
   /**
    * Draw the sea layer of game board.
+   * Hit area and missed area should be marked.
    * @param {Number} size Board size.
+   * @param {Function} checkHitHistoryCallback Board.alreadyHit() function.
+   * @param {Function} checkMissHistoryCallback Board.alreadyMissed() function.
    * @returns Sea layer div element.
    */
-  function drawSeaLayer(size) {
+  function drawSeaLayer(size, checkHitHistoryCallback, checkMissHistoryCallback) {
     const seaLayer = document.createElement('div');
     seaLayer.classList.add('seaLayer');
     for (let row = 0; row < size; row += 1) {
@@ -36,6 +39,11 @@ export default (() => {
         const seaGrid = createGrid(row, column);
         if (row === 0) seaGrid.classList.add('upperBorder');
         if (column === 0) seaGrid.classList.add('leftBorder');
+        if (checkHitHistoryCallback(row, column)) {
+          seaGrid.classList.add('alreadyHit');
+        } else if (checkMissHistoryCallback(row, column)) {
+          seaGrid.classList.add('alreadyMissed');
+        }
         seaLayer.appendChild(seaGrid);
       }
     }
@@ -44,13 +52,13 @@ export default (() => {
 
   /**
    * Draw the ship layer of game board.
+   * Ship position should be highlighted.
    * @param {Number} size Board size.
    * @param {String} playerType "ai" or "human".
-   * @param {Function} callback Board.canHitShip() function,
-   * to check if there's a ship sits on a certain grid.
+   * @param {Function} checkShipCallback Board.canHitShip() function.
    * @returns Ship layer div element.
    */
-  function drawShipLayer(size, playerType, callback) {
+  function drawShipLayer(size, playerType, checkShipCallback) {
     const shipLayer = document.createElement('div');
     shipLayer.classList.add('shipLayer');
     for (let row = 0; row < size; row += 1) {
@@ -58,7 +66,7 @@ export default (() => {
         const shipGrid = createGrid(row, column);
         if (row === 0) shipGrid.classList.add('upperBorder');
         if (column === 0) shipGrid.classList.add('leftBorder');
-        if (callback(row, column)) shipGrid.classList.add('hasShip');
+        if (checkShipCallback(row, column)) shipGrid.classList.add('hasShip');
         shipLayer.appendChild(shipGrid);
       }
     }
@@ -79,16 +87,43 @@ export default (() => {
    * Draw board of specific player.
    * @param {Number} size Size of the board.
    * @param {Number} playerId Denote which board to draw.
-   * @param {String} playerType "human" or "ai"
-   * @param {Function} callback Board.canHitShip() function,
-   * to check if there's a ship sits on a certain grid.
+   * @param {String} playerType "human" or "ai".
+   * @param {Function} checkShipCallback Board.canHitShip() function.
+   * @param {Function} checkHitHistoryCallback Board.alreadyHit() function.
+   * @param {Function} checkMissHistoryCallback Board.alreadyMissed() function.
    */
-  function drawBoard(size, playerId, playerType, callback) {
-    const target = ELEMENTS.players[playerId];
-    const seaLayer = drawSeaLayer(size);
-    const shipLayer = drawShipLayer(size, playerType, callback);
+  function drawBoard(
+    size,
+    playerId,
+    playerType,
+    checkShipCallback,
+    checkHitHistoryCallback,
+    checkMissHistoryCallback,
+  ) {
+    const target = ELEMENTS.players[playerId].querySelector('.board');
+    const seaLayer = drawSeaLayer(size, checkHitHistoryCallback, checkMissHistoryCallback);
+    const shipLayer = drawShipLayer(size, playerType, checkShipCallback);
     target.appendChild(seaLayer);
     target.appendChild(shipLayer);
+  }
+
+  /**
+   * Render a specific grid color according to the attack result.
+   * @param {Number} row Target grid Axi Y.
+   * @param {Number} column Target grid Axi X.
+   * @param {Number} playerId Player id.
+   * @param {Boolean} attackResult true if hit, false if missed.
+   */
+  function renderSeaAfterAttack(row, column, playerId, attackResult) {
+    const playerElement = ELEMENTS.players[playerId];
+    const boardElement = playerElement.querySelector('.board > .seaLayer');
+    const grid = boardElement.querySelector(`.grid[data-row="${row}"][data-column="${column}"]`);
+    if (attackResult === undefined) return; // no more grid to attack.
+    if (attackResult) { // hit
+      grid.classList.add('alreadyHit');
+    } else { // miss
+      grid.classList.add('alreadyMissed');
+    }
   }
 
   /**
@@ -97,13 +132,22 @@ export default (() => {
    * @param {Function} callback Actual attack logic resides in controller.
    */
   function bindReceiveAttack(callback) {
-    ELEMENTS.boards.forEach((boardElement) => {
+    ELEMENTS.players.forEach((playerElement) => {
+      const boardElement = playerElement.querySelector('.board > .seaLayer');
       const grids = boardElement.querySelectorAll('.grid');
       grids.forEach((grid) => {
         grid.addEventListener('click', () => callback(
           parseInt(grid.dataset.row, 10),
           parseInt(grid.dataset.column, 10),
-          parseInt(boardElement.dataset.playerId, 10),
+          parseInt(playerElement.dataset.id, 10),
+          (attackResult) => {
+            if (attackResult === undefined) return;
+            if (attackResult) { // hit
+              grid.classList.add('alreadyHit');
+            } else { // miss
+              grid.classList.add('alreadyMissed');
+            }
+          },
         ));
       });
     });
@@ -113,6 +157,7 @@ export default (() => {
 
   return {
     drawBoard,
+    renderSeaAfterAttack,
     bindReceiveAttack,
   };
 })();

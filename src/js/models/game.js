@@ -96,7 +96,7 @@ export default (() => {
    * @param {Symbol} player1Type HUMAN or AI
    * @param {Symbol} player2Type HUMAN or AI
    */
-  function initPlayers(player1Type, player2Type) {
+  function initPlayersAndBoards(player1Type, player2Type) {
     game.players = [];
     const playerTypes = [player1Type, player2Type];
     for (let i = 0; i < playerTypes.length; i += 1) {
@@ -132,15 +132,22 @@ export default (() => {
   }
 
   /**
-   * Recursion: pass this function to Player.attack() function as callback.
-   * When AI player callback, automatically go to next turn.
-   * Human player doesn't callback.
+   * If is human player, do nothing(wait for human to click
+   * on the board to trigger an attack event).
+   *
+   * AI Player's attack function only makes a dicision of
+   * where to attack, and callback controller to do the
+   * rest of the job.
    */
-  function nextTurn() {
+  function nextTurn(controllerAttackCallback) {
     game.currentPlayer = nextIndex();
     const currPlayer = game.players[game.currentPlayer];
+    if (!currPlayer.isAI()) return; // human player do nothing.
     const opponent = game.players[nextIndex()];
-    currPlayer.attack(opponent.board(), nextTurn);
+    const target = currPlayer.attack(opponent.board()); // AI player's next attack target
+    if (target) { // if there's no more grid to be attacked, target will be undefined.
+      controllerAttackCallback(...target, opponent.id());
+    }
   }
 
   /**
@@ -163,7 +170,6 @@ export default (() => {
     // Start game.
     // Set to the last player. nextTurn() will move on.
     game.currentPlayer = game.players.length - 1;
-    nextTurn();
     return true;
   }
 
@@ -173,7 +179,7 @@ export default (() => {
     player,
     autofillFleet,
     nextTurn,
-    initPlayers,
+    initPlayersAndBoards,
     againstAI,
     againstHuman,
     start,
