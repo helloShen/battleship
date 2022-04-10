@@ -91,10 +91,11 @@
 
 .board > .seaLayer > .grid.alreadyMissed::after {
   position: absolute;
-  top: .2rem;
-  left: .2rem;
+  /* top: .2rem; */
+  /* left: .2rem; */
   content: 'waves';
   color: var(--blue);
+  font-size: 2rem;
 }
 
 .board > .seaLayer > .grid.alreadyHit.sunk {

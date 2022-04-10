@@ -91,24 +91,37 @@ export default (inId, inBoard, inType, inLevel) => {
   }
 
   /**
-   * Calculate the distance of two points.
-   * Distance = Horizontal distance + Vertical distance.
-   * @param {Number} rowA
-   * @param {Number} columnA
-   * @param {Number} rowB
-   * @param {Number} columnB
+   * Calculate the sum of distances bewtween the target point
+   * and all points in player.lastHit.
+   * Distance = horizontal distance + vertical distance.
+   * @param {Number} row
+   * @param {Number} column
    * @return {Number} Distance of point A and B.
    */
   function distance(row, column) {
-    return player.lastHit.reduce((dist, hit) => {
-      const y = Math.abs(row - hit[0]);
-      const x = Math.abs(column - hit[1]);
-      return dist + x + y;
-    }, 0);
+    return player.lastHit.reduce((dist, hit) => Math.abs(row - hit[0])
+      + Math.abs(column - hit[1])
+      + dist, 0);
   }
 
   /**
-   * Calculate the distance of an intact point with all last hit(sunk
+   * Calculate the sum of distances bewtween the target point
+   * and all points in player.lastHit.
+   * coDistance = sum of horizontal distance * sum of vertical distance + distance
+   * @param {Number} row
+   * @param {Number} column
+   * @return {Number} Distance of point A and B.
+   */
+  function coDistance(row, column) {
+    const [sumRowDist, sumColDist] = player.lastHit.reduce((result, hit) => [
+      result[0] + Math.abs(row - hit[0]),
+      result[1] + Math.abs(column - hit[1]),
+    ], [0, 0]);
+    return sumRowDist * sumColDist + distance(row, column);
+  }
+
+  /**
+   * Calculate the distance of an intact point with all remaining last hit(sunk
    * ship coordinates will be removed).
    * Return the intact point with the smallest distance.
    * @param {Board} opponentBoard Oppoenent's board object.
@@ -122,7 +135,9 @@ export default (inId, inBoard, inType, inLevel) => {
       const [rowStr, columnStr] = str.split('-');
       const row = parseInt(rowStr, 10);
       const column = parseInt(columnStr, 10);
-      const dist = distance(row, column);
+      const dist = (player.lastHit.length === 1)
+        ? distance(row, column)
+        : coDistance(row, column);
       if (dist < minDistance) {
         minDistance = dist;
         return [row, column];
