@@ -146,9 +146,14 @@ export default (() => {
    *
    * AI Player's attack function only decides where to attack,
    * and callback controller to do the rest of the job.
+   * @param {Boolean} passToNextPlayer
+   *  true if switch player.
+   *  false doesn't switch player.
+   * @param {Function} controllerAttackCallback Actual attack
+   * logic in Controller module.
    */
-  function nextTurn(controllerAttackCallback) {
-    game.currentPlayer = nextIndex();
+  function nextTurn(passToNextPlayer, controllerAttackCallback) {
+    if (passToNextPlayer) game.currentPlayer = nextIndex();
     const currPlayer = game.players[game.currentPlayer];
     if (!currPlayer.isAI()) return; // human player do nothing.
     const opponent = game.players[nextIndex()];

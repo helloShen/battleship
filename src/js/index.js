@@ -10,10 +10,7 @@ import Controller, {
 } from './controller';
 import css from '../css/index.css';
 
-Controller.clearAllBoards();
-Controller.initPlayersAndBoards(HUMAN, AI);
-Controller.drawBoardsForPlayer(0); // in human player's perspective
-Controller.lockOpponentBoard();
-Controller.enableBoardReceiveAttack();
+Controller.newGame();
 Controller.enableRandomFleet();
-// Controller.startGame();
+Controller.enableStartGame();
+Controller.enableRestartGame();

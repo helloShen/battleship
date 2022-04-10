@@ -28,10 +28,11 @@ export default (inId, inBoard, inType, inLevel) => {
     id: inId,
     type: inType,
     board: inBoard,
+    lastHit: [], // memorize hits (sunk ship's coordinates will be removed)
   };
 
   if (player.type === AI) {
-    player.level = inLevel || EASY; // default is EASY
+    player.level = inLevel || NORMAL; // default is NORMAL
   }
 
   /**
@@ -68,6 +69,10 @@ export default (inId, inBoard, inType, inLevel) => {
     player.level = level;
   }
 
+  /**
+   * Get the player's board object.
+   * @returns Player's board object.
+   */
   function board() {
     return player.board;
   }
@@ -86,12 +91,44 @@ export default (inId, inBoard, inType, inLevel) => {
   }
 
   /**
-   * Pick(with normal strategy) a target from opponent board's intact list.
+   * Calculate the distance of two points.
+   * Distance = Horizontal distance + Vertical distance.
+   * @param {Number} rowA
+   * @param {Number} columnA
+   * @param {Number} rowB
+   * @param {Number} columnB
+   * @return {Number} Distance of point A and B.
+   */
+  function distance(row, column) {
+    return player.lastHit.reduce((dist, hit) => {
+      const y = Math.abs(row - hit[0]);
+      const x = Math.abs(column - hit[1]);
+      return dist + x + y;
+    }, 0);
+  }
+
+  /**
+   * Calculate the distance of an intact point with all last hit(sunk
+   * ship coordinates will be removed).
+   * Return the intact point with the smallest distance.
    * @param {Board} opponentBoard Oppoenent's board object.
    * @returns the target coordinate
    */
   function normalAttack(opponentBoard) {
-    return randomAttack(opponentBoard);
+    if (opponentBoard.intact().length === 0) return undefined;
+    if (player.lastHit.length === 0) return randomAttack(opponentBoard);
+    let minDistance = Number.MAX_VALUE;
+    return opponentBoard.intact().reduce((arr, str) => {
+      const [rowStr, columnStr] = str.split('-');
+      const row = parseInt(rowStr, 10);
+      const column = parseInt(columnStr, 10);
+      const dist = distance(row, column);
+      if (dist < minDistance) {
+        minDistance = dist;
+        return [row, column];
+      }
+      return arr;
+    }, []);
   }
 
   /**
@@ -126,6 +163,18 @@ export default (inId, inBoard, inType, inLevel) => {
     return undefined; // human player return undefined
   }
 
+  function memorizeLastHit(row, column) {
+    player.lastHit.push([row, column]);
+  }
+
+  function forgetLastHit(shipCoordinates) {
+    shipCoordinates.forEach((coordinate) => {
+      const index = player.lastHit.findIndex((point) => (point[0] === coordinate[0])
+        && (point[1] === coordinate[1]));
+      if (index !== -1) player.lastHit.splice(index, 1);
+    });
+  }
+
   return {
     id,
     isAI,
@@ -133,5 +182,7 @@ export default (inId, inBoard, inType, inLevel) => {
     setAiLevel,
     board,
     attack,
+    memorizeLastHit,
+    forgetLastHit,
   };
 };

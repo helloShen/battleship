@@ -20,6 +20,10 @@
   --transparent: #00000000;
 }
 
+.lock {
+  pointer-events: none;
+}
+
 .board {
   margin: 2rem;
   display: grid;
@@ -42,53 +46,68 @@
   z-index: 2;
 }
 
-.player > .board.lock .seaLayer {
-  pointer-events: none;
-}
-
-.player.main .seaLayer {
-  opacity: .5;
+.player.main > .board > .seaLayer {
+  opacity: 0.7;
   user-select: none;
   pointer-events: none;
 }
 
-.player .shipLayer {
+.board > .shipLayer {
   z-index: 1;
 }
 
-.player .grid {
+.board .grid {
   border-bottom: 1px solid var(--board-border);
   border-right: 1px solid var(--board-border);
 }
 
-.player .grid.upperBorder {
+.board .grid.upperBorder {
   border-top: 1px solid var(--board-border);
 }
 
-.player .grid.leftBorder {
+.board .grid.leftBorder {
   border-left: 1px solid var(--board-border);
 }
 
-.player .grid.hasShip {
+.board .grid.hasShip {
   background-color: var(--blue);
 }
 
-.player .seaLayer .grid.alreadyHit {
+.board > .seaLayer > .grid {
   position: relative;
 }
 
-.player .seaLayer .grid.alreadyHit::after {
+.board > .seaLayer > .grid:not(.alreadyHit):not(.alreadyMissed):hover {
+  background-color: var(--gray);
+}
+
+.board > .seaLayer > .grid.alreadyHit::after {
+  position: absolute;
+  top: .2rem;
+  left: .2rem;
+  content: 'whatshot';
+  color: var(--hit);
+}
+
+.board > .seaLayer > .grid.alreadyMissed::after {
+  position: absolute;
+  top: .2rem;
+  left: .2rem;
+  content: 'waves';
+  color: var(--blue);
+}
+
+.board > .seaLayer > .grid.alreadyHit.sunk {
+  background-color: var(--sunk);
+}
+
+.board > .seaLayer > .grid.alreadyHit.sunk::after {
   position: absolute;
   top: .2rem;
   left: .2rem;
   content: 'local_fire_department';
-  color: var(--hit);
 }
 
-.player .grid.alreadyMissed {
-  background-color: var(--missed);
-}
-
-.player .grid.alreadyHit.sunk {
-  background-color: var(--sunk);
+.lock.btn {
+  opacity: .5;
 }

@@ -8,6 +8,7 @@ export default (() => {
     opponentPlayer: document.querySelector('.player.opponent'),
     random: document.querySelector('.random'),
     start: document.querySelector('.start'),
+    newGame: document.querySelector('.newGame'),
   };
 
   /**
@@ -205,6 +206,22 @@ export default (() => {
   }
 
   /**
+   * Lock the board of target player.
+   * @param {Number} playerId Target player's id.
+   */
+  function lockBoard(playerId) {
+    getPlayerElementById(playerId).querySelector('.board').classList.add('lock');
+  }
+
+  /**
+   * Unlock the board of target player.
+   * @param {Number} playerId Target player's id.
+   */
+  function unlockBoard(playerId) {
+    getPlayerElementById(playerId).querySelector('.board').classList.remove('lock');
+  }
+
+  /**
     * Lock opponent's board, prevent player from interact with the board
     * before starting the game.
     */
@@ -220,7 +237,49 @@ export default (() => {
     ELEMENTS.opponentPlayer.querySelector('.board').classList.remove('lock');
   }
 
-  // prevent current player's board to be attacked.
+  /**
+   * Callback Controller when player click Start button.
+   * @param {Function} callback Actual logic of starting a game in Controllor module.
+   */
+  function bindStartGameButton(callback) {
+    ELEMENTS.start.addEventListener('click', () => callback());
+  }
+
+  /**
+   * Prevent player from click the random fleet button.
+   */
+  function lockRandomFleetButton() {
+    ELEMENTS.random.classList.add('lock');
+  }
+
+  /**
+   * Allow player to use random fleet button.
+   */
+  function unlockRandomFleetButton() {
+    ELEMENTS.random.classList.remove('lock');
+  }
+
+  /**
+   * Prevent player from click the random fleet button.
+   */
+  function lockStartGameButton() {
+    ELEMENTS.start.classList.add('lock');
+  }
+
+  /**
+   * Allow player to click the random fleet button.
+   */
+  function unlockStartGameButton() {
+    ELEMENTS.start.classList.remove('lock');
+  }
+
+  /**
+   * Callback Controller when player click Restart button.
+   * @param {Function} callback Actual logic of restarting a game in Controllor module.
+   */
+  function bindRestartGameButton(callback) {
+    ELEMENTS.newGame.addEventListener('click', () => callback());
+  }
 
   return {
     drawBoard,
@@ -230,7 +289,15 @@ export default (() => {
     renderSunkShips,
     bindReceiveAttack,
     bindRandomFleet,
+    lockBoard,
+    unlockBoard,
     lockOpponentBoard,
     unlockOpponentBoard,
+    bindStartGameButton,
+    lockRandomFleetButton,
+    unlockRandomFleetButton,
+    bindRestartGameButton,
+    lockStartGameButton,
+    unlockStartGameButton,
   };
 })();

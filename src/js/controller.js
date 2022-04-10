@@ -64,11 +64,28 @@ export default (() => {
   }
 
   /**
+   * Lock all boards, prevent player from interact with the board
+   * before starting the game.
+   */
+  function lockOpponentBoard() {
+    View.lockOpponentBoard();
+  }
+
+  /**
+   * Once the game is prepared, unlock all boards, so that player gain
+   * the access to the board.
+   */
+  function unlockOpponentBoard() {
+    View.unlockOpponentBoard();
+  }
+
+  /**
    * Gameover logic.
    */
   function gameover(winnerId) {
     // eslint-disable-next-line no-alert
     alert(`${winnerId} win!`);
+    lockOpponentBoard();
   }
 
   /**
@@ -82,22 +99,28 @@ export default (() => {
    * @param {Number} opponentId Id of opponent player.
    * @return {Array}
    *  Return undefined if spot already been attacked.
-   *  A list of surrounding points if a ship is sunk after this attack.
-   *  Otherwise, return an empty array.
+   *  Return -1 if missed.
+   *  If hit,
+   *    Return a list of surrounding points if a ship is sunk after this attack.
+   *    Otherwise, return 0.
    */
   function playerAttackOneSpot(row, column, opponentId) {
     const board = Game.player(opponentId).board();
-    let surroundings = [];
     // attack
     if (board.alreadyBeenAttacked(row, column)) return undefined;
     const shipId = board.receiveAttack(row, column);
     // render attacked spot
     View.renderSeaAfterAttack(row, column, opponentId, shipId);
-    if (shipId !== -1 && board.getShip(shipId).isSunk()) { // hit a ship
-      View.renderSunkShips(opponentId, board.getShip(shipId).coordinates());
-      surroundings = board.shipSurroundingArea(shipId);
+    if (shipId === -1) return shipId; // miss
+    Game.currentPlayer().memorizeLastHit(row, column); // memorize hit coordination
+    // report coordinates if ship sunk
+    if (board.getShip(shipId).isSunk()) { // hit a ship and the ship is sunk
+      const shipCoordinates = board.getShip(shipId).coordinates();
+      View.renderSunkShips(opponentId, shipCoordinates);
+      Game.currentPlayer().forgetLastHit(shipCoordinates);
+      return board.shipSurroundingArea(shipId);
     }
-    return surroundings;
+    return 0;
   }
 
   /**
@@ -111,16 +134,22 @@ export default (() => {
    * @param {Number} opponentId Id of opponent player.
    */
   function playerAttack(row, column, opponentId) {
-    const surroundings = playerAttackOneSpot(row, column, opponentId);
-    if (surroundings === undefined) return; // spot already been attacked.
-    if (surroundings.length > 0) {
-      surroundings.forEach((coordinate) => playerAttackOneSpot(...coordinate, opponentId));
+    const result = playerAttackOneSpot(row, column, opponentId);
+    if (result === undefined) return; // spot already been attacked.
+    if (Array.isArray(result)) { // attack sink a ship
+      result.forEach((coordinate) => playerAttackOneSpot(...coordinate, opponentId));
     }
     if (Game.player(opponentId).board().allSunk()) {
       gameover(Game.currentPlayer().id());
       return;
     }
-    Game.nextTurn(playerAttack); // pass itself to the Game module as a callback.
+    if (result === -1) { // missed
+      View.lockBoard(opponentId);
+      View.unlockBoard(Game.currentPlayer().id());
+      Game.nextTurn(true, playerAttack); // pass itself to the Game module as a callback.
+    } else { // if hit a ship, current player can give one more shot.
+      Game.nextTurn(false, playerAttack);
+    }
   }
 
   /**
@@ -150,33 +179,15 @@ export default (() => {
   }
 
   /**
-   * Lock all boards, prevent player from interact with the board
-   * before starting the game.
-   */
-  function lockOpponentBoard() {
-    View.lockOpponentBoard();
-  }
-
-  /**
-   * Once the game is prepared, unlock all boards, so that player gain
-   * the access to the board.
-   */
-  function unlockOpponentBoard() {
-    View.unlockOpponentBoard();
-  }
-
-  /**
    * Initialize a new game.
    * The game is not yet started.
    * Have to call startGame() to start.
    */
-  function initGame() {
-    clearAllBoards();
+  function newGame() {
     initPlayersAndBoards(HUMAN, AI);
     drawBoardsForPlayer(0); // in human player's perspective
     lockOpponentBoard();
     enableBoardReceiveAttack();
-    enableRandomFleet();
   }
 
   /**
@@ -186,6 +197,33 @@ export default (() => {
     Game.start();
     Game.nextTurn(playerAttack); // pass itself to the Game module as a callback.
     unlockOpponentBoard();
+    // once the game start, player cannot change the fleet until the end of the game.
+    View.lockRandomFleetButton();
+    View.lockStartGameButton();
+  }
+
+  /**
+   * Call View to bind listener on Start game button.
+   */
+  function enableStartGame() {
+    View.bindStartGameButton(startGame);
+  }
+
+  /**
+   * Re-initialize a new game with randomly auto-filled fleet for both player.
+   */
+  function restartGame() {
+    clearAllBoards();
+    newGame();
+    View.unlockRandomFleetButton();
+    View.unlockStartGameButton();
+  }
+
+  /**
+   * Call View module to bind restart game feature to DOM elements.
+   */
+  function enableRestartGame() {
+    View.bindRestartGameButton(restartGame);
   }
 
   return {
@@ -197,7 +235,10 @@ export default (() => {
     enableRandomFleet,
     lockOpponentBoard,
     unlockOpponentBoard,
-    initGame,
+    newGame,
     startGame,
+    restartGame,
+    enableStartGame,
+    enableRestartGame,
   };
 })();
