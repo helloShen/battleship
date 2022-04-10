@@ -38,10 +38,91 @@ export default (inSize) => {
   }
 
   /**
+   * Retrieve a ship in fleet by id.
+   * @param {Number} id Ship id.
+   * @return The ship object if exists. Otherwise undefined.
+   */
+  function getShip(id) {
+    return board.fleet.find((ship) => ship.id() === id);
+  }
+
+  /**
    * Allow other modules to check size of current fleet.
    */
   function fleetSize() {
     return board.fleet.length;
+  }
+
+  /**
+   * Delete all ships in fleet.
+   */
+  function clearFleet() {
+    board.fleet = [];
+  }
+
+  /**
+   * Return the body coordinates of all ships in fleet.
+   */
+  function shipCoordinates() {
+    return board.fleet.reduce((arr, fleetShip) => {
+      arr.push(fleetShip.coordinates());
+      return arr;
+    }, []);
+  }
+
+  /**
+   * Check if the number is located in range of board size.
+   * @param {Number} num Number to check
+   * @returns true if in board, otherwise false.
+   */
+  function legal(num) {
+    return num >= 0 && num < board.size;
+  }
+
+  /**
+   * Get an array of coordinates of the surrounding points of
+   * that ship.
+   * @param {Number} shipId Ship id.
+   * @return {Array} Coordinates of the surrounding points of
+   * that ship.
+   */
+  function shipSurroundingArea(shipId) {
+    const result = [];
+    const ship = getShip(shipId);
+    const [ulRow, ulCol] = ship.head();
+    const [brRow, brCol] = ship.tail();
+    let blRow;
+    let blCol;
+    let urRow;
+    let urCol;
+    if (ship.isHorizontal()) {
+      [blRow, blCol] = ship.head();
+      [urRow, urCol] = ship.tail();
+    } else {
+      [blRow, blCol] = ship.tail();
+      [urRow, urCol] = ship.head();
+    }
+    if (ulRow - 1 >= 0) {
+      for (let i = ulCol - 1; i <= urCol + 1; i += 1) {
+        if (legal(i)) result.push([ulRow - 1, i]);
+      }
+    }
+    if (blRow + 1 < board.size) {
+      for (let i = blCol - 1; i <= brCol + 1; i += 1) {
+        if (legal(i)) result.push([blRow + 1, i]);
+      }
+    }
+    if (ulCol - 1 >= 0) {
+      for (let i = ulRow; i <= blRow; i += 1) {
+        result.push([i, ulCol - 1]);
+      }
+    }
+    if (urCol + 1 < board.size) {
+      for (let i = urRow; i <= brRow; i += 1) {
+        result.push([i, urCol + 1]);
+      }
+    }
+    return result;
   }
 
   /**
@@ -58,10 +139,10 @@ export default (inSize) => {
 
   /**
    * Remove a specific point from the board.intact array.
-   * @param {String} str Position string.
+   * @param {String} positonStr Position string.
    */
-  function removeFromIntact(str) {
-    const index = board.intact.findIndex((position) => position === str);
+  function removeFromIntact(positionStr) {
+    const index = board.intact.findIndex((position) => position === positionStr);
     if (index === -1) return;
     board.intact.splice(index, 1);
   }
@@ -206,10 +287,16 @@ export default (inSize) => {
    * Actually try to hit a ship.
    * @param {Number} row Axi Y of target grid.
    * @param {Number} column Axi X of target grid.
-   * @returns true if can hit, otherwise false.
+   * @returns {Number}
+   *  return ship id if hit.
+   *  return -1 if miss.
    */
   function tryHitShip(row, column) {
-    return board.fleet.some((fleetShip) => fleetShip.hit(row, column));
+    let hit = -1;
+    board.fleet.forEach((fleetShip) => {
+      if (fleetShip.hit(row, column)) hit = fleetShip.id();
+    });
+    return hit;
   }
 
   /**
@@ -228,34 +315,23 @@ export default (inSize) => {
    * only if the target position has never been attacked before.
    * @param {Number} row AxiY of target.
    * @param {Number} column AxiX of target.
-   * @return {Boolean}
-   *  true, if hit.
-   *  false, if missed.
-   *  undefined, if already been attacked before.
+   * @return {Number}
+   *  if hit, return the ship's id.
+   *  return -1 if missed.
+   *  return undefined, if already been attacked before.
    */
   function receiveAttack(row, column) {
     const target = [row, column];
     // Must be undefined. If return false, will be considered as a miss.
     if (alreadyBeenAttacked(...target)) return undefined;
     const hit = tryHitShip(row, column);
-    if (hit) {
+    if (hit !== -1) {
       board.hits.push(target);
     } else {
       board.misses.push(target);
     }
     removeFromIntact(`${row}-${column}`);
     return hit;
-  }
-
-  /**
-   * Report all coordinates of sunk ships.
-   * @return {Array} An array of the coordinates of all sunk ships.
-   */
-  function reportSunk() {
-    return board.fleet.reduce((arr, fleetShip) => {
-      if (fleetShip.isSunk()) arr.push(fleetShip.coordinates());
-      return arr;
-    }, []);
   }
 
   /**
@@ -277,7 +353,11 @@ export default (inSize) => {
   const api = {
     size,
     intact,
+    getShip,
     fleetSize,
+    clearFleet,
+    shipCoordinates,
+    shipSurroundingArea,
     available,
     putShip,
     removeShip,
@@ -287,7 +367,6 @@ export default (inSize) => {
     alreadyBeenAttacked,
     canHitShip,
     receiveAttack,
-    reportSunk,
     allSunk,
   };
 

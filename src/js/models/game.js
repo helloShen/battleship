@@ -85,9 +85,18 @@ export default (() => {
   /**
    * Search Player object by their id.
    * @param {Number} id player id.
+   * @return {Player} Player object if exists.
    */
   function player(id) {
     return game.players.find((thePlayer) => thePlayer.id() === id);
+  }
+
+  /**
+   * Return current player object.
+   * @returns {Player} Current player object.
+   */
+  function currentPlayer() {
+    return game.players[game.currentPlayer];
   }
 
   /**
@@ -176,6 +185,7 @@ export default (() => {
     DEFAULT_BOARD_SIZE,
     players,
     player,
+    currentPlayer,
     autofillFleet,
     nextTurn,
     initPlayersAndBoards,

@@ -5,11 +5,15 @@ import Controller, {
   EASY,
   NORMAL,
   HARD,
+  MAIN,
+  OPPONENT,
 } from './controller';
-// eslint-disable-next-line no-unused-vars
 import css from '../css/index.css';
 
+Controller.clearAllBoards();
 Controller.initPlayersAndBoards(HUMAN, AI);
-Controller.drawBoards();
+Controller.drawBoardsForPlayer(0); // in human player's perspective
+Controller.lockOpponentBoard();
 Controller.enableBoardReceiveAttack();
-Controller.startGame();
+Controller.enableRandomFleet();
+// Controller.startGame();

@@ -1,12 +1,13 @@
-// import Player from "./models/player";
+export const MAIN = Symbol('main');
+export const OPPONENT = Symbol('opponent');
 
 export default (() => {
   const ELEMENTS = {
     root: document.querySelector(':root'),
-    players: [
-      document.querySelector('.player[data-id="0"]'),
-      document.querySelector('.player[data-id="1"]'),
-    ],
+    mainPlayer: document.querySelector('.player.main'),
+    opponentPlayer: document.querySelector('.player.opponent'),
+    random: document.querySelector('.random'),
+    start: document.querySelector('.start'),
   };
 
   /**
@@ -25,26 +26,23 @@ export default (() => {
 
   /**
    * Draw the sea layer of game board.
-   * Hit area and missed area should be marked.
+   * Each grid is annotated with the player's id to whom
+   * this board belongs.
    * @param {Number} size Board size.
-   * @param {Function} checkHitHistoryCallback Board.alreadyHit() function.
-   * @param {Function} checkMissHistoryCallback Board.alreadyMissed() function.
+   * @param {Number} playerId Id of owner of that board.
    * @returns Sea layer div element.
    */
-  function drawSeaLayer(size, checkHitHistoryCallback, checkMissHistoryCallback) {
+  function drawSeaLayer(size, playerId) {
     const seaLayer = document.createElement('div');
     seaLayer.classList.add('seaLayer');
     for (let row = 0; row < size; row += 1) {
       for (let column = 0; column < size; column += 1) {
-        const seaGrid = createGrid(row, column);
-        if (row === 0) seaGrid.classList.add('upperBorder');
-        if (column === 0) seaGrid.classList.add('leftBorder');
-        if (checkHitHistoryCallback(row, column)) {
-          seaGrid.classList.add('alreadyHit');
-        } else if (checkMissHistoryCallback(row, column)) {
-          seaGrid.classList.add('alreadyMissed');
-        }
-        seaLayer.appendChild(seaGrid);
+        const grid = createGrid(row, column);
+        grid.dataset.playerId = playerId;
+        grid.classList.add('material-icons');
+        if (row === 0) grid.classList.add('upperBorder');
+        if (column === 0) grid.classList.add('leftBorder');
+        seaLayer.appendChild(grid);
       }
     }
     return seaLayer;
@@ -54,57 +52,81 @@ export default (() => {
    * Draw the ship layer of game board.
    * Ship position should be highlighted.
    * @param {Number} size Board size.
-   * @param {String} playerType "ai" or "human".
    * @param {Function} checkShipCallback Board.canHitShip() function.
    * @returns Ship layer div element.
    */
-  function drawShipLayer(size, playerType, checkShipCallback) {
+  function drawShipLayer(size, checkShipCallback) {
     const shipLayer = document.createElement('div');
     shipLayer.classList.add('shipLayer');
     for (let row = 0; row < size; row += 1) {
       for (let column = 0; column < size; column += 1) {
-        const shipGrid = createGrid(row, column);
-        if (row === 0) shipGrid.classList.add('upperBorder');
-        if (column === 0) shipGrid.classList.add('leftBorder');
-        if (checkShipCallback(row, column)) shipGrid.classList.add('hasShip');
-        shipLayer.appendChild(shipGrid);
+        const grid = createGrid(row, column);
+        if (row === 0) grid.classList.add('upperBorder');
+        if (column === 0) grid.classList.add('leftBorder');
+        if (checkShipCallback(row, column)) grid.classList.add('hasShip');
+        shipLayer.appendChild(grid);
       }
-    }
-    switch (playerType) {
-      case 'ai':
-        shipLayer.classList.add('hide');
-        break;
-      case 'human':
-        shipLayer.classList.add('show');
-        break;
-      default:
-        break;
     }
     return shipLayer;
   }
 
   /**
-   * Draw board of specific player.
+   * Get the MAIN or OPPONENT board element.
+   * @param {Symbol} mainOrOpponent MAIN or OPPONENT
+   * @return {Element} The DOM element represent the desired board.
+   */
+  function getMainOrOpponentBoard(mainOrOpponent) {
+    return (mainOrOpponent === MAIN)
+      ? ELEMENTS.mainPlayer.querySelector('.board')
+      : ELEMENTS.opponentPlayer.querySelector('.board');
+  }
+
+  /**
+   * Search the board element by player id.
+   * @param {Number} playerId Id of desired player.
+   * @return {Element} DOM element representing the desired board.
+   */
+  function getPlayerElementById(playerId) {
+    if (parseInt(ELEMENTS.mainPlayer.dataset.playerId, 10)
+      === playerId) return ELEMENTS.mainPlayer;
+    return ELEMENTS.opponentPlayer;
+  }
+
+  /**
+   * Draw a player's board in MAIN board section or OPPONENT board section.
+   * Ex: In player 1's page,
+   *  => his own board is shown in MAIN section.
+   *  => player 2's board is shown in OPPONENT section.
    * @param {Number} size Size of the board.
    * @param {Number} playerId Denote which board to draw.
-   * @param {String} playerType "human" or "ai".
+   * @param {Symbol} mainOrOpponent MAIN or OPPONENT
    * @param {Function} checkShipCallback Board.canHitShip() function.
-   * @param {Function} checkHitHistoryCallback Board.alreadyHit() function.
-   * @param {Function} checkMissHistoryCallback Board.alreadyMissed() function.
    */
   function drawBoard(
     size,
     playerId,
-    playerType,
+    mainOrOpponent,
     checkShipCallback,
-    checkHitHistoryCallback,
-    checkMissHistoryCallback,
   ) {
-    const target = ELEMENTS.players[playerId].querySelector('.board');
-    const seaLayer = drawSeaLayer(size, checkHitHistoryCallback, checkMissHistoryCallback);
-    const shipLayer = drawShipLayer(size, playerType, checkShipCallback);
+    const target = getMainOrOpponentBoard(mainOrOpponent);
+    target.parentElement.dataset.playerId = playerId;
+    const seaLayer = drawSeaLayer(size, playerId);
+    const shipLayer = drawShipLayer(size, checkShipCallback);
     target.appendChild(seaLayer);
     target.appendChild(shipLayer);
+  }
+
+  /**
+   * Clear the main board or the opponent's board.
+   */
+  function clearBoard(mainOrOpponent) {
+    const target = getMainOrOpponentBoard(mainOrOpponent);
+    target.innerHTML = '';
+  }
+
+  function clearAllBoards() {
+    clearBoard(MAIN);
+    clearBoard(OPPONENT);
   }
 
   /**
@@ -112,61 +134,103 @@ export default (() => {
    * @param {Number} row Target grid Axi Y.
    * @param {Number} column Target grid Axi X.
    * @param {Number} playerId Player id.
-   * @param {Boolean} attackResult true if hit, false if missed.
+   * @param {Number} attackResult
+   *  1. if attack hit a ship, it's the ship's id.
+   *  2. if attack missed, it's -1.
+   *  3. if the target spot alreay been attacked before, it's undefined.
    */
   function renderSeaAfterAttack(row, column, playerId, attackResult) {
-    const playerElement = ELEMENTS.players[playerId];
-    const boardElement = playerElement.querySelector('.board > .seaLayer');
-    const grid = boardElement.querySelector(`.grid[data-row="${row}"][data-column="${column}"]`);
-    if (attackResult === undefined) return; // no more grid to attack.
-    if (attackResult) { // hit
-      grid.classList.add('alreadyHit');
-    } else { // miss
+    const playerElement = getPlayerElementById(playerId);
+    const seaLayer = playerElement.querySelector('.board > .seaLayer');
+    const grid = seaLayer.querySelector(`.grid[data-row="${row}"][data-column="${column}"]`);
+    if (attackResult === undefined) return; // no more grid to attack
+    if (attackResult === -1) { // missed
       grid.classList.add('alreadyMissed');
+    } else { // it's a hit
+      grid.classList.add('alreadyHit');
     }
   }
 
   /**
-   * Mark all sunk ships of that player on Sea Layer.
+   * Given an array of coordinates of the ship body, mark that ship on the Sea Layer.
    * @param {Number} playerId Player id.
-   * @param {Array} sunkCoordinates coordinates of all sunk ships.
+   * @param {Array} sunkCoordinates Coordinates of the sunk ship (sunk by this attack).
    */
   function renderSunkShips(playerId, sunkCoordinates) {
-    const playerElement = ELEMENTS.players[playerId];
-    const boardElement = playerElement.querySelector('.board > .seaLayer');
-    sunkCoordinates.forEach((coordinates) => {
-      coordinates.forEach((coordinate) => {
-        const grid = boardElement.querySelector(`.grid[data-row="${coordinate[0]}"][data-column="${coordinate[1]}"]`);
-        grid.classList.add('sunk');
-      });
+    const playerElement = getPlayerElementById(playerId);
+    const seaLayer = playerElement.querySelector('.board > .seaLayer');
+    sunkCoordinates.forEach((coordinate) => {
+      const grid = seaLayer.querySelector(`.grid[data-row="${coordinate[0]}"][data-column="${coordinate[1]}"]`);
+      grid.classList.add('sunk');
     });
   }
 
   /**
-   * Click on board will callback controller's playerAttack() function.
-   * @param {Element} boardElement Target board container element in DOM.
-   * @param {Function} callback Actual attack logic resides in controller.
+   * Bind event listener to a player's board, so that
+   * when opponent click on board will callback controller's playerAttack() function.
+   * @param {Element} playerElement mainPlayer or opponentPlayer
+   * @param {Function} callback Controller.playerAttack() function,
+   * The actual attack logic resides in controller.
+   */
+  function bindReceiveAttackToPlayersBoard(playerElement, callback) {
+    const seaLayer = playerElement.querySelector('.board > .seaLayer');
+    const grids = seaLayer.querySelectorAll('.grid');
+    grids.forEach((grid) => {
+      grid.addEventListener('click', () => callback(
+        parseInt(grid.dataset.row, 10),
+        parseInt(grid.dataset.column, 10),
+        parseInt(playerElement.dataset.playerId, 10),
+      ));
+    });
+  }
+
+  /**
+   * Bind receive attack feature to both MAIN and OPPONENT board on the page.
+   * @param {Function} callback Controller.playerAttack() function,
+   * The actual attack logic resides in controller.
    */
   function bindReceiveAttack(callback) {
-    ELEMENTS.players.forEach((playerElement) => {
-      const boardElement = playerElement.querySelector('.board > .seaLayer');
-      const grids = boardElement.querySelectorAll('.grid');
-      grids.forEach((grid) => {
-        grid.addEventListener('click', () => callback(
-          parseInt(grid.dataset.row, 10),
-          parseInt(grid.dataset.column, 10),
-          parseInt(playerElement.dataset.id, 10),
-        ));
-      });
-    });
+    bindReceiveAttackToPlayersBoard(ELEMENTS.mainPlayer, callback);
+    bindReceiveAttackToPlayersBoard(ELEMENTS.opponentPlayer, callback);
+  }
+
+  /**
+   * Bind random fleet feature.
+   * @param {Function} callback Controller will provide the logic of
+   * actually generating a new fleet and re-draw the board.
+   */
+  function bindRandomFleet(callback) {
+    const playerId = parseInt(ELEMENTS.mainPlayer.dataset.playerId, 10);
+    ELEMENTS.random.addEventListener('click', () => callback(MAIN, playerId)); // main player random his fleet.
+  }
+
+  /**
+    * Lock opponent's board, prevent player from interact with the board
+    * before starting the game.
+    */
+  function lockOpponentBoard() {
+    ELEMENTS.opponentPlayer.querySelector('.board').classList.add('lock');
+  }
+
+  /**
+    * Once the game is prepared, unlock opponent's boards, so that player gain
+    * the access to the board.
+    */
+  function unlockOpponentBoard() {
+    ELEMENTS.opponentPlayer.querySelector('.board').classList.remove('lock');
   }
 
   // prevent current player's board to be attacked.
 
   return {
     drawBoard,
+    clearBoard,
+    clearAllBoards,
     renderSeaAfterAttack,
     renderSunkShips,
     bindReceiveAttack,
+    bindRandomFleet,
+    lockOpponentBoard,
+    unlockOpponentBoard,
   };
 })();
