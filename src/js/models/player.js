@@ -121,8 +121,9 @@ export default (inId, inBoard, inType, inLevel) => {
   }
 
   /**
-   * Calculate the distance of an intact point with all remaining last hit(sunk
+   * Calculate the co-distance of an intact point with all remaining last hit(sunk
    * ship coordinates will be removed).
+   * co-distance = sum of horizontal distance * sum of vertical distance + distance
    * Return the intact point with the smallest distance.
    * @param {Board} opponentBoard Oppoenent's board object.
    * @returns the target coordinate

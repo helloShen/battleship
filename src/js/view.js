@@ -1,3 +1,5 @@
+import GithubImg from '../assets/img/github.png';
+
 export const MAIN = Symbol('main');
 export const OPPONENT = Symbol('opponent');
 
@@ -9,6 +11,9 @@ export default (() => {
     random: document.querySelector('.random'),
     start: document.querySelector('.start'),
     newGame: document.querySelector('.newGame'),
+    header: document.querySelector('.header'),
+    main: document.querySelector('.main'),
+    footer: document.querySelector('.footer'),
   };
 
   /**
@@ -199,10 +204,14 @@ export default (() => {
    * Bind random fleet feature.
    * @param {Function} callback Controller will provide the logic of
    * actually generating a new fleet and re-draw the board.
+   * @param {Function} playAudio Play button click audio.
    */
-  function bindRandomFleet(callback) {
+  function bindRandomFleet(callback, playAudio) {
     const playerId = parseInt(ELEMENTS.mainPlayer.dataset.playerId, 10);
-    ELEMENTS.random.addEventListener('click', () => callback(MAIN, playerId)); // main player random his fleet.
+    ELEMENTS.random.addEventListener('click', () => {
+      playAudio();
+      callback(MAIN, playerId);
+    }); // main player random his fleet.
   }
 
   /**
@@ -240,9 +249,13 @@ export default (() => {
   /**
    * Callback Controller when player click Start button.
    * @param {Function} callback Actual logic of starting a game in Controllor module.
+   * @param {Function} playAudio Player game start audio.
    */
-  function bindStartGameButton(callback) {
-    ELEMENTS.start.addEventListener('click', () => callback());
+  function bindStartGameButton(callback, playAudio) {
+    ELEMENTS.start.addEventListener('click', () => {
+      playAudio();
+      callback();
+    });
   }
 
   /**
@@ -281,6 +294,24 @@ export default (() => {
     ELEMENTS.newGame.addEventListener('click', () => callback());
   }
 
+  function renderFooter(githubImg, year) {
+    return `
+      <div class="copyright">
+        Copyright MIT © hireme.shen@gmail.com &nbsp;|&nbsp; Source code - 
+        <a href="https://github.com/helloShen/battleship"><img class="github" src="${githubImg}"></a>
+      </div>
+      <div class="year">2021-${year}</div>
+    `;
+  }
+
+  function showFooter() {
+    const year = new Date().getFullYear();
+    ELEMENTS.footer.insertAdjacentHTML(
+      'afterbegin',
+      renderFooter(GithubImg, year),
+    );
+  }
+
   return {
     drawBoard,
     clearBoard,
@@ -299,5 +330,6 @@ export default (() => {
     bindRestartGameButton,
     lockStartGameButton,
     unlockStartGameButton,
+    showFooter,
   };
 })();

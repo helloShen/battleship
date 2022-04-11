@@ -111,15 +111,20 @@ export default (() => {
     const shipId = board.receiveAttack(row, column);
     // render attacked spot
     View.renderSeaAfterAttack(row, column, opponentId, shipId);
-    if (shipId === -1) return shipId; // miss
+    if (shipId === -1) {
+      Game.playMissAudio();
+      return shipId; // miss
+    }
     Game.currentPlayer().memorizeLastHit(row, column); // memorize hit coordination
     // report coordinates if ship sunk
     if (board.getShip(shipId).isSunk()) { // hit a ship and the ship is sunk
+      Game.playSunkAudio();
       const shipCoordinates = board.getShip(shipId).coordinates();
       View.renderSunkShips(opponentId, shipCoordinates);
       Game.currentPlayer().forgetLastHit(shipCoordinates);
       return board.shipSurroundingArea(shipId);
     }
+    Game.playHitAudio();
     return 0;
   }
 
@@ -175,7 +180,7 @@ export default (() => {
   }
 
   function enableRandomFleet() {
-    View.bindRandomFleet(randomAgain);
+    View.bindRandomFleet(randomAgain, Game.playClickAudio);
   }
 
   /**
@@ -206,7 +211,7 @@ export default (() => {
    * Call View to bind listener on Start game button.
    */
   function enableStartGame() {
-    View.bindStartGameButton(startGame);
+    View.bindStartGameButton(startGame, Game.playGameStartAudio);
   }
 
   /**
@@ -226,6 +231,13 @@ export default (() => {
     View.bindRestartGameButton(restartGame);
   }
 
+  /**
+   * Print footer.
+   */
+  function showFooter() {
+    View.showFooter();
+  }
+
   return {
     initPlayersAndBoards,
     drawASingleBoard,
@@ -240,5 +252,6 @@ export default (() => {
     restartGame,
     enableStartGame,
     enableRestartGame,
+    showFooter,
   };
 })();

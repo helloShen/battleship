@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 /* eslint-disable no-unused-vars */
 import Ship from './ship';
 import Board from './board';
@@ -16,6 +17,12 @@ export {
   NORMAL,
   HARD,
 };
+// audio resources
+import Hit from '../../assets/audio/hit.wav';
+import Miss from '../../assets/audio/deepBubble.wav';
+import Sunk from '../../assets/audio/sunkExplosion.wav';
+import Click from '../../assets/audio/click.wav';
+import GameStart from '../../assets/audio/gameStart.wav';
 
 let UNIT_TEST;
 // eslint-disable-next-line prefer-const
@@ -32,6 +39,11 @@ export default (() => {
     ['submarine', 3],
     ['destroyer', 2],
   ];
+  const HitAudio = new Audio(Hit);
+  const MissAudio = new Audio(Miss);
+  const SunkAudio = new Audio(Sunk);
+  const ClickAudio = new Audio(Click);
+  const GameStartAudio = new Audio(GameStart);
 
   /**
    * Game module proto.
@@ -39,6 +51,31 @@ export default (() => {
    *  currentPlayer: Number. Index of current player in the players array.
    */
   const game = {};
+
+  function playHitAudio() {
+    HitAudio.currentTime = 0;
+    HitAudio.play();
+  }
+
+  function playMissAudio() {
+    MissAudio.currentTime = 0;
+    MissAudio.play();
+  }
+
+  function playSunkAudio() {
+    SunkAudio.currentTime = 0;
+    SunkAudio.play();
+  }
+
+  function playClickAudio() {
+    ClickAudio.currentTime = 0;
+    ClickAudio.play();
+  }
+
+  function playGameStartAudio() {
+    GameStartAudio.currentTime = 0;
+    GameStartAudio.play();
+  }
 
   /**
    * Generate a integer in range of [0, max).
@@ -188,6 +225,11 @@ export default (() => {
 
   const api = {
     DEFAULT_BOARD_SIZE,
+    playHitAudio,
+    playMissAudio,
+    playSunkAudio,
+    playClickAudio,
+    playGameStartAudio,
     players,
     player,
     currentPlayer,

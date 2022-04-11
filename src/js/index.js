@@ -14,3 +14,4 @@ Controller.newGame();
 Controller.enableRandomFleet();
 Controller.enableStartGame();
 Controller.enableRestartGame();
+Controller.showFooter();
