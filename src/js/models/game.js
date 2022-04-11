@@ -23,6 +23,8 @@ import Miss from '../../assets/audio/deepBubble.wav';
 import Sunk from '../../assets/audio/sunkExplosion.wav';
 import Click from '../../assets/audio/click.wav';
 import GameStart from '../../assets/audio/gameStart.wav';
+import Win from '../../assets/audio/win.wav';
+import Lose from '../../assets/audio/lose.wav';
 
 let UNIT_TEST;
 // eslint-disable-next-line prefer-const
@@ -44,6 +46,8 @@ export default (() => {
   const SunkAudio = new Audio(Sunk);
   const ClickAudio = new Audio(Click);
   const GameStartAudio = new Audio(GameStart);
+  const WinAudio = new Audio(Win);
+  const LoseAudio = new Audio(Lose);
 
   /**
    * Game module proto.
@@ -75,6 +79,16 @@ export default (() => {
   function playGameStartAudio() {
     GameStartAudio.currentTime = 0;
     GameStartAudio.play();
+  }
+
+  function playWinAudio() {
+    WinAudio.currentTime = 0;
+    WinAudio.play();
+  }
+
+  function playLoseAudio() {
+    LoseAudio.currentTime = 0;
+    LoseAudio.play();
   }
 
   /**
@@ -196,7 +210,7 @@ export default (() => {
     const opponent = game.players[nextIndex()];
     const target = currPlayer.attack(opponent.board()); // AI player's next attack target
     if (target) { // if there's no more grid to be attacked, target will be undefined.
-      controllerAttackCallback(...target, opponent.id());
+      setTimeout(() => controllerAttackCallback(...target, opponent.id()), 500);
     }
   }
 
@@ -230,6 +244,8 @@ export default (() => {
     playSunkAudio,
     playClickAudio,
     playGameStartAudio,
+    playWinAudio,
+    playLoseAudio,
     players,
     player,
     currentPlayer,

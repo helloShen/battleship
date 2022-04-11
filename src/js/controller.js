@@ -83,8 +83,9 @@ export default (() => {
    * Gameover logic.
    */
   function gameover(winnerId) {
-    // eslint-disable-next-line no-alert
-    alert(`${winnerId} win!`);
+    const hasWin = (winnerId === 0);
+    const playAudioCallback = (winnerId === 0) ? Game.playWinAudio : Game.playLoseAudio;
+    View.showWinner(hasWin, playAudioCallback);
     lockOpponentBoard();
   }
 
@@ -201,6 +202,7 @@ export default (() => {
   function startGame() {
     Game.start();
     Game.nextTurn(playerAttack); // pass itself to the Game module as a callback.
+    View.lockBoard(0);
     unlockOpponentBoard();
     // once the game start, player cannot change the fleet until the end of the game.
     View.lockRandomFleetButton();

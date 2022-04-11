@@ -1,4 +1,6 @@
-import GithubImg from '../assets/img/github.png';
+import GithubIcon from '../assets/img/github.png';
+import WinIcon from '../assets/img/win.png';
+import LoseIcon from '../assets/img/lose.png';
 
 export const MAIN = Symbol('main');
 export const OPPONENT = Symbol('opponent');
@@ -6,6 +8,7 @@ export const OPPONENT = Symbol('opponent');
 export default (() => {
   const ELEMENTS = {
     root: document.querySelector(':root'),
+    body: document.querySelector('body'),
     mainPlayer: document.querySelector('.player.main'),
     opponentPlayer: document.querySelector('.player.opponent'),
     random: document.querySelector('.random'),
@@ -300,16 +303,40 @@ export default (() => {
         Copyright MIT © hireme.shen@gmail.com &nbsp;|&nbsp; Source code - 
         <a href="https://github.com/helloShen/battleship"><img class="github" src="${githubImg}"></a>
       </div>
+      <div class="credit">
+        <a href="https://www.flaticon.com/free-icons/winner" title="winner icons">Winner icons created by Freepik - Flaticon</a>
+      </div>
       <div class="year">2021-${year}</div>
     `;
   }
 
+  /**
+   * Create footer element.
+   */
   function showFooter() {
     const year = new Date().getFullYear();
     ELEMENTS.footer.insertAdjacentHTML(
       'afterbegin',
-      renderFooter(GithubImg, year),
+      renderFooter(GithubIcon, year),
     );
+  }
+
+  function showWinner(isWin, playAudioCallback) {
+    const img = (isWin) ? WinIcon : LoseIcon;
+    const template = `
+      <div class="promptForm announceWinner">
+          <div class="inner">
+              <div class="icon"><img src="${img}"></div>
+              <div class="btns">
+                  <div class="btn confirm">Confirm</div>
+              </div>
+          </div>
+      </div>`;
+    ELEMENTS.body.insertAdjacentHTML('afterbegin', template);
+    const form = document.querySelector('.promptForm');
+    const confirm = document.querySelector('.announceWinner .btn.confirm');
+    confirm.addEventListener('click', () => form.remove());
+    playAudioCallback();
   }
 
   return {
@@ -331,5 +358,6 @@ export default (() => {
     lockStartGameButton,
     unlockStartGameButton,
     showFooter,
+    showWinner,
   };
 })();
